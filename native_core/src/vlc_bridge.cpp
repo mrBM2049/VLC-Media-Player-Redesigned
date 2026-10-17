@@ -636,6 +636,35 @@ public:
         return 0;
     }
 
+    int set_nsobject(void* view) {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (!m_initialized) return -1;
+        if (m_vlc_player) {
+            libvlc_media_player_set_nsobject(m_vlc_player, view);
+        }
+        return 0;
+    }
+
+    int set_hwnd(void* hwnd) {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (!m_initialized) return -1;
+        if (m_vlc_player) {
+            libvlc_media_player_set_hwnd(m_vlc_player, hwnd);
+        }
+        return 0;
+    }
+
+    int set_android_context(void* awindow) {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (!m_initialized) return -1;
+        if (m_vlc_player) {
+            libvlc_media_player_set_android_context(m_vlc_player, awindow);
+        }
+        return 0;
+    }
+
+    int setup_gpu_surface(vlc_surface_type_t type, void* platform_context);
+
     void set_event_callback(vlc_event_callback_fn callback, void* user_data) {
         std::lock_guard<std::mutex> lock(m_mutex);
         m_event_callback = callback;
@@ -974,12 +1003,81 @@ void vlc_bridge_set_event_callback(vlc_event_callback_fn callback, void* user_da
     vlc_modern::PlayerController::instance().set_event_callback(callback, user_data);
 }
 
+static void* vlc_video_lock_thunk(void* /*opaque*/, void** planes) {
+    return vlc_surface_lock(planes);
+}
+
+static void vlc_video_unlock_thunk(void* /*opaque*/, void* picture, void* const* planes) {
+    vlc_surface_unlock(picture, planes);
+}
+
+static void vlc_video_display_thunk(void* /*opaque*/, void* picture) {
+    vlc_surface_display(picture);
+}
+
+static unsigned int vlc_video_format_thunk(void** /*opaque*/, char* chroma, unsigned* width, unsigned* height, unsigned* pitches, unsigned* lines) {
+    return vlc_surface_format_setup(chroma, width, height, pitches, lines);
+}
+
+static void vlc_video_cleanup_thunk(void* /*opaque*/) {
+    vlc_surface_format_cleanup();
+}
+
+int vlc_modern::PlayerController::setup_gpu_surface(vlc_surface_type_t type, void* platform_context) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    if (!m_initialized) return -1;
+
+    int res = vlc_surface_init(type, platform_context);
+    if (res != 0) return res;
+
+    if (m_vlc_player) {
+        libvlc_video_set_callbacks(
+            m_vlc_player,
+            vlc_video_lock_thunk,
+            vlc_video_unlock_thunk,
+            vlc_video_display_thunk,
+            this
+        );
+        libvlc_video_set_format_callbacks(
+            m_vlc_player,
+            vlc_video_format_thunk,
+            vlc_video_cleanup_thunk
+        );
+    }
+    return 0;
+}
+
 const char* vlc_bridge_get_version(void) {
     return libvlc_get_version();
 }
 
 bool vlc_bridge_has_native_vlc(void) {
     return vlc_modern::PlayerController::instance().has_native_vlc();
+}
+
+/* Hardware Surface & Window Integration Exports */
+int vlc_bridge_set_nsobject(void* nsobject_view) {
+    return vlc_modern::PlayerController::instance().set_nsobject(nsobject_view);
+}
+
+int vlc_bridge_set_hwnd(void* hwnd) {
+    return vlc_modern::PlayerController::instance().set_hwnd(hwnd);
+}
+
+int vlc_bridge_set_android_context(void* awindow_handler) {
+    return vlc_modern::PlayerController::instance().set_android_context(awindow_handler);
+}
+
+int vlc_bridge_setup_gpu_surface(vlc_surface_type_t type, void* platform_context) {
+    return vlc_modern::PlayerController::instance().setup_gpu_surface(type, platform_context);
+}
+
+void vlc_bridge_set_gpu_frame_callback(vlc_surface_frame_callback_fn callback, void* user_data) {
+    vlc_surface_set_frame_callback(callback, user_data);
+}
+
+void vlc_bridge_get_video_dimensions(uint32_t* width, uint32_t* height) {
+    vlc_surface_get_dimensions(width, height);
 }
 
 }

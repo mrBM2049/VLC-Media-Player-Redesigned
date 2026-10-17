@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include "hardware_surface.h"
 
 #if defined(_WIN32) || defined(__CYGWIN__)
   #ifdef VLC_BRIDGE_BUILD_SHARED
@@ -138,6 +139,14 @@ VLC_BRIDGE_API float vlc_bridge_equalizer_get_preamp(void);
 VLC_BRIDGE_API int vlc_bridge_equalizer_set_amp(unsigned int band, float amp);
 VLC_BRIDGE_API float vlc_bridge_equalizer_get_amp(unsigned int band);
 VLC_BRIDGE_API int vlc_bridge_equalizer_enable(bool enable);
+
+/* Hardware Surface & Window Integration */
+VLC_BRIDGE_API int vlc_bridge_set_nsobject(void* nsobject_view);
+VLC_BRIDGE_API int vlc_bridge_set_hwnd(void* hwnd);
+VLC_BRIDGE_API int vlc_bridge_set_android_context(void* awindow_handler);
+VLC_BRIDGE_API int vlc_bridge_setup_gpu_surface(vlc_surface_type_t type, void* platform_context);
+VLC_BRIDGE_API void vlc_bridge_set_gpu_frame_callback(vlc_surface_frame_callback_fn callback, void* user_data);
+VLC_BRIDGE_API void vlc_bridge_get_video_dimensions(uint32_t* width, uint32_t* height);
 
 /* Event Dispatch */
 VLC_BRIDGE_API void vlc_bridge_set_event_callback(vlc_event_callback_fn callback, void* user_data);

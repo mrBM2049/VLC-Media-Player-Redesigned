@@ -8,10 +8,22 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # Public include directory
 include_directories(include)
 
+if(APPLE)
+    enable_language(OBJCXX)
+endif()
+
 # Main Native Shared Library
 add_library(vlc_modern_core SHARED
     src/vlc_bridge.cpp
 )
+
+if(APPLE)
+    target_sources(vlc_modern_core PRIVATE src/hardware_surface_metal.mm)
+elseif(WIN32)
+    target_sources(vlc_modern_core PRIVATE src/hardware_surface_d3d11.cpp)
+elseif(ANDROID)
+    target_sources(vlc_modern_core PRIVATE src/hardware_surface_jni.cpp)
+endif()
 
 target_compile_definitions(vlc_modern_core PRIVATE VLC_BRIDGE_BUILD_SHARED)
 

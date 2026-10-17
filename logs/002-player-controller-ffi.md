@@ -61,3 +61,4 @@ Completed the comprehensive `player_controller` C/FFI bridge and Dart zero-seria
   2. `native_core/src/vlc_bridge.cpp`
   3. `docs/Architecture.md` (Section 3: System Architecture & Native Video Surface Rendering)
 - **Known Edge Cases / Blockers:** For Metal rendering, use `libvlc_video_set_callbacks` with a Metal texture cache (`CVMetalTextureCacheCreateTextureFromImage`) or `libvlc_media_player_set_nsobject` on macOS to bind to an `NSView` / `CAMetalLayer` surface.
+

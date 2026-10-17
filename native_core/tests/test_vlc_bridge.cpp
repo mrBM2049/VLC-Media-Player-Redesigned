@@ -129,6 +129,37 @@ int main() {
     vlc_bridge_next_frame();
     vlc_bridge_take_snapshot("/tmp/test_snapshot.png", 0, 0);
 
+    // 11. Zero-Copy GPU Hardware Video Surface
+    std::cout << "[TEST] Validating Zero-Copy GPU Hardware Video Surface..." << std::endl;
+    int surf_res = vlc_bridge_setup_gpu_surface(VLC_SURFACE_TYPE_METAL, nullptr);
+    assert(surf_res == 0);
+    assert(vlc_surface_is_ready());
+
+    uint32_t surf_w = 0, surf_h = 0;
+    vlc_bridge_get_video_dimensions(&surf_w, &surf_h);
+    assert(surf_w > 0 && surf_h > 0);
+    std::cout << "[INFO] Initialized Hardware Surface Dimensions: " << surf_w << "x" << surf_h << std::endl;
+
+    // Test format setup callback
+    char chroma[5] = {0};
+    unsigned test_w = 3840; // 4K UHD
+    unsigned test_h = 2160;
+    unsigned pitches[3] = {0};
+    unsigned lines[3] = {0};
+    unsigned planes = vlc_surface_format_setup(chroma, &test_w, &test_h, pitches, lines);
+    assert(planes == 1);
+    assert(std::string(chroma, 4) == "BGRA");
+    assert(pitches[0] == 3840 * 4);
+    assert(lines[0] == 2160);
+
+    // Test lock & unlock pipeline
+    void* picture_planes[3] = {nullptr};
+    void* pic = vlc_surface_lock(picture_planes);
+    assert(pic != nullptr);
+    assert(picture_planes[0] != nullptr);
+    vlc_surface_unlock(pic, picture_planes);
+    vlc_surface_display(pic);
+
     // Verify events were dispatched
     assert(!g_dispatched_events.empty());
 

@@ -128,6 +128,10 @@ class VlcPlayerController {
   double getEqualizerBandAmp(int band) => _bindings.vlcBridgeEqualizerGetAmp(band);
   int enableEqualizer(bool enable) => _bindings.vlcBridgeEqualizerEnable(enable);
 
+  /* Zero-Copy Hardware Surface */
+  int setupGpuSurface(VlcSurfaceType type) => _bindings.setupGpuSurface(type);
+  (int, int) get videoDimensions => _bindings.getVideoDimensions();
+
   void dispose() {
     _stateController.close();
     _positionController.close();
@@ -136,3 +140,4 @@ class VlcPlayerController {
     _bindings.vlcBridgeDestroy();
   }
 }
+

@@ -14,6 +14,14 @@ enum VlcPlayerState {
   error,
 }
 
+enum VlcSurfaceType {
+  nativeWindow,
+  metal,
+  d3d11,
+  androidSurface,
+  softwareBgra,
+}
+
 enum VlcEventType {
   stateChanged,
   timeChanged,
@@ -118,6 +126,11 @@ class VlcBridgeBindings {
   late final int Function(bool) vlcBridgeEqualizerEnable;
   late final Pointer<Utf8> Function() _vlcBridgeGetVersion;
   late final bool Function() vlcBridgeHasNativeVlc;
+  late final int Function(Pointer<Void>) vlcBridgeSetNsobject;
+  late final int Function(Pointer<Void>) vlcBridgeSetHwnd;
+  late final int Function(Pointer<Void>) vlcBridgeSetAndroidContext;
+  late final int Function(int, Pointer<Void>) vlcBridgeSetupGpuSurface;
+  late final void Function(Pointer<Uint32>, Pointer<Uint32>) _vlcBridgeGetVideoDimensions;
 
   void _initBindings() {
     vlcBridgeInit = _lib.lookupFunction<Int32 Function(), int Function()>('vlc_bridge_init');
@@ -171,6 +184,11 @@ class VlcBridgeBindings {
     vlcBridgeEqualizerEnable = _lib.lookupFunction<Int32 Function(Bool), int Function(bool)>('vlc_bridge_equalizer_enable');
     _vlcBridgeGetVersion = _lib.lookupFunction<Pointer<Utf8> Function(), Pointer<Utf8> Function()>('vlc_bridge_get_version');
     vlcBridgeHasNativeVlc = _lib.lookupFunction<Bool Function(), bool Function()>('vlc_bridge_has_native_vlc');
+    vlcBridgeSetNsobject = _lib.lookupFunction<Int32 Function(Pointer<Void>), int Function(Pointer<Void>)>('vlc_bridge_set_nsobject');
+    vlcBridgeSetHwnd = _lib.lookupFunction<Int32 Function(Pointer<Void>), int Function(Pointer<Void>)>('vlc_bridge_set_hwnd');
+    vlcBridgeSetAndroidContext = _lib.lookupFunction<Int32 Function(Pointer<Void>), int Function(Pointer<Void>)>('vlc_bridge_set_android_context');
+    vlcBridgeSetupGpuSurface = _lib.lookupFunction<Int32 Function(Int32, Pointer<Void>), int Function(int, Pointer<Void>)>('vlc_bridge_setup_gpu_surface');
+    _vlcBridgeGetVideoDimensions = _lib.lookupFunction<Void Function(Pointer<Uint32>, Pointer<Uint32>), void Function(Pointer<Uint32>, Pointer<Uint32>)>('vlc_bridge_get_video_dimensions');
   }
 
   int open(String mrl) {
@@ -217,4 +235,27 @@ class VlcBridgeBindings {
       calloc.free(nativeStr);
     }
   }
+
+  int setNsObject(Pointer<Void> view) => vlcBridgeSetNsobject(view);
+  int setHwnd(Pointer<Void> hwnd) => vlcBridgeSetHwnd(hwnd);
+  int setAndroidContext(Pointer<Void> awindow) => vlcBridgeSetAndroidContext(awindow);
+  int setupGpuSurface(VlcSurfaceType type, [Pointer<Void>? platformContext]) {
+    return vlcBridgeSetupGpuSurface(
+      type.index,
+      platformContext ?? Pointer.fromAddress(0),
+    );
+  }
+
+  (int, int) getVideoDimensions() {
+    final wPtr = calloc<Uint32>();
+    final hPtr = calloc<Uint32>();
+    try {
+      _vlcBridgeGetVideoDimensions(wPtr, hPtr);
+      return (wPtr.value, hPtr.value);
+    } finally {
+      calloc.free(wPtr);
+      calloc.free(hPtr);
+    }
+  }
 }
+
