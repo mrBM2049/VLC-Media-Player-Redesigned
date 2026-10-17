@@ -110,10 +110,7 @@ void main() {
       expect(muteTriggered, isTrue);
 
       // Drag volume slider to 75% width -> 150% overdrive
-      final sliderGesture = find.descendant(
-        of: find.byType(FullConeVolumeControl),
-        matching: find.byType(GestureDetector),
-      );
+      final sliderGesture = find.byKey(const ValueKey('volume_slider_gesture'));
       final sliderRect = tester.getRect(sliderGesture);
 
       // Tap at 75% width (overdrive range)

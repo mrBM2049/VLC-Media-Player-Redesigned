@@ -1,5 +1,6 @@
 import 'dart:async';
 import '../ffi/vlc_bindings.dart';
+export '../ffi/vlc_bindings.dart';
 
 /// Reactive Player Controller providing unified control of libVLC engine
 class VlcPlayerController {
@@ -19,6 +20,8 @@ class VlcPlayerController {
       : _bindings = bindings ?? VlcBridgeBindings() {
     _bindings.vlcBridgeInit();
   }
+
+  factory VlcPlayerController.mock() => VlcPlayerController(VlcBridgeBindings.mock());
 
   bool get isInitialized => _bindings.vlcBridgeIsInitialized();
   String get vlcVersion => _bindings.getVersion();
@@ -63,6 +66,8 @@ class VlcPlayerController {
     _timeController.add(target);
     return res;
   }
+
+  int setTime(int ms) => seekTo(Duration(milliseconds: ms));
 
   int seekPosition(double pos) {
     final clamped = pos.clamp(0.0, 1.0);

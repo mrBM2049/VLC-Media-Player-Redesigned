@@ -11,8 +11,14 @@ obj/
 # macOS
 .DS_Store
 
-# IDEs
-.vscode/
-.idea/
-*.swp
+# Flutter
+.dart_tool/
+.packages
+pubspec.lock
+android/local.properties
+ios/Flutter/
+ios/Runner/GeneratedPluginRegistrant.*
+macos/Flutter/
+linux/flutter/ephemeral/
+windows/flutter/ephemeral/
 

@@ -112,6 +112,7 @@ class _FullConeVolumeControlState extends State<FullConeVolumeControl> {
               message: volumeText,
               waitDuration: const Duration(milliseconds: 300),
               child: GestureDetector(
+                key: const ValueKey('volume_slider_gesture'),
                 behavior: HitTestBehavior.opaque,
                 onHorizontalDragStart: (details) {
                   setState(() => _isDragging = true);

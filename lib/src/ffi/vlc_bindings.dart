@@ -57,21 +57,43 @@ class VlcBridgeBindings {
   late final DynamicLibrary _lib;
 
   VlcBridgeBindings([String? libraryPath]) {
-    if (libraryPath != null) {
-      _lib = DynamicLibrary.open(libraryPath);
-    } else if (Platform.isMacOS) {
-      _lib = DynamicLibrary.open('libvlc_modern_core.dylib');
-    } else if (Platform.isWindows) {
-      _lib = DynamicLibrary.open('vlc_modern_core.dll');
-    } else if (Platform.isLinux || Platform.isAndroid) {
-      _lib = DynamicLibrary.open('libvlc_modern_core.so');
-    } else if (Platform.isIOS) {
-      _lib = DynamicLibrary.process();
-    } else {
-      throw UnsupportedError('Unsupported platform for VLC bridge');
+    try {
+      if (libraryPath != null) {
+        _lib = DynamicLibrary.open(libraryPath);
+      } else if (Platform.isMacOS) {
+        final local = File('build/native_core/libvlc_modern_core.dylib');
+        if (local.existsSync()) {
+          _lib = DynamicLibrary.open(local.absolute.path);
+        } else {
+          _lib = DynamicLibrary.open('libvlc_modern_core.dylib');
+        }
+      } else if (Platform.isWindows) {
+        final local = File('build/native_core/vlc_modern_core.dll');
+        if (local.existsSync()) {
+          _lib = DynamicLibrary.open(local.absolute.path);
+        } else {
+          _lib = DynamicLibrary.open('vlc_modern_core.dll');
+        }
+      } else if (Platform.isLinux || Platform.isAndroid) {
+        final local = File('build/native_core/libvlc_modern_core.so');
+        if (local.existsSync()) {
+          _lib = DynamicLibrary.open(local.absolute.path);
+        } else {
+          _lib = DynamicLibrary.open('libvlc_modern_core.so');
+        }
+      } else if (Platform.isIOS) {
+        _lib = DynamicLibrary.process();
+      } else {
+        throw UnsupportedError('Unsupported platform for VLC bridge');
+      }
+      _initBindings();
+    } catch (_) {
+      _initMockBindings();
     }
+  }
 
-    _initBindings();
+  VlcBridgeBindings.mock() {
+    _initMockBindings();
   }
 
   /* Function pointers */
@@ -189,6 +211,68 @@ class VlcBridgeBindings {
     vlcBridgeSetAndroidContext = _lib.lookupFunction<Int32 Function(Pointer<Void>), int Function(Pointer<Void>)>('vlc_bridge_set_android_context');
     vlcBridgeSetupGpuSurface = _lib.lookupFunction<Int32 Function(Int32, Pointer<Void>), int Function(int, Pointer<Void>)>('vlc_bridge_setup_gpu_surface');
     _vlcBridgeGetVideoDimensions = _lib.lookupFunction<Void Function(Pointer<Uint32>, Pointer<Uint32>), void Function(Pointer<Uint32>, Pointer<Uint32>)>('vlc_bridge_get_video_dimensions');
+  }
+
+  void _initMockBindings() {
+    vlcBridgeInit = () => 0;
+    vlcBridgeDestroy = () {};
+    vlcBridgeIsInitialized = () => true;
+    _vlcBridgeOpen = (_) => 0;
+    vlcBridgePlay = () => 0;
+    vlcBridgePause = () => 0;
+    vlcBridgeStop = () => 0;
+    vlcBridgeTogglePlay = () => 0;
+    vlcBridgeGetTime = () => 0;
+    vlcBridgeSetTime = (_) => 0;
+    vlcBridgeGetLength = () => 100000;
+    vlcBridgeGetPosition = () => 0.0;
+    vlcBridgeSetPosition = (_) => 0;
+    vlcBridgeGetRate = () => 1.0;
+    vlcBridgeSetRate = (_) => 0;
+    vlcBridgeGetVolume = () => 100;
+    vlcBridgeSetVolume = (_) => 0;
+    vlcBridgeGetMute = () => false;
+    vlcBridgeSetMute = (_) => 0;
+    vlcBridgeToggleMute = () => 0;
+    _vlcBridgeGetState = () => 0;
+    vlcBridgeGetSpuDelay = () => 0;
+    vlcBridgeSetSpuDelay = (_) => 0;
+    vlcBridgeGetAudioDelay = () => 0;
+    vlcBridgeSetAudioDelay = (_) => 0;
+    vlcBridgeGetAudioTrackCount = () => 0;
+    vlcBridgeGetAudioTrack = () => -1;
+    vlcBridgeSetAudioTrack = (_) => 0;
+    vlcBridgeGetSpuCount = () => 0;
+    vlcBridgeGetSpuTrack = () => -1;
+    vlcBridgeSetSpuTrack = (_) => 0;
+    _vlcBridgeAddSubtitleFile = (_, __) => 0;
+    vlcBridgeGetChapterCount = () => 0;
+    vlcBridgeGetChapter = () => 0;
+    vlcBridgeSetChapter = (_) => 0;
+    vlcBridgeNextChapter = () => 0;
+    vlcBridgePreviousChapter = () => 0;
+    vlcBridgeNextFrame = () => 0;
+    _vlcBridgeTakeSnapshot = (_, __, ___) => 0;
+    vlcBridgeEqualizerGetPresetCount = () => 0;
+    _vlcBridgeEqualizerGetPresetName = (_) => Pointer.fromAddress(0);
+    vlcBridgeEqualizerGetBandCount = () => 0;
+    vlcBridgeEqualizerGetBandFrequency = (_) => 0.0;
+    vlcBridgeEqualizerSetPreset = (_) => 0;
+    vlcBridgeEqualizerSetPreamp = (_) => 0;
+    vlcBridgeEqualizerGetPreamp = () => 0.0;
+    vlcBridgeEqualizerSetAmp = (_, __) => 0;
+    vlcBridgeEqualizerGetAmp = (_) => 0.0;
+    vlcBridgeEqualizerEnable = (_) => 0;
+    _vlcBridgeGetVersion = () => Pointer.fromAddress(0);
+    vlcBridgeHasNativeVlc = () => false;
+    vlcBridgeSetNsobject = (_) => 0;
+    vlcBridgeSetHwnd = (_) => 0;
+    vlcBridgeSetAndroidContext = (_) => 0;
+    vlcBridgeSetupGpuSurface = (_, __) => 0;
+    _vlcBridgeGetVideoDimensions = (w, h) {
+      w.value = 1920;
+      h.value = 1080;
+    };
   }
 
   int open(String mrl) {

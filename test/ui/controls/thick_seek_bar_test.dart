@@ -56,7 +56,7 @@ void main() {
       final barRect = tester.getRect(barFinder);
 
       // Tap at 50% width -> should seek to 50 seconds
-      await tester.tapAt(Offset(barRect.left + 500, barRect.center.dy));
+      await tester.tapAt(barRect.center);
       await tester.pump();
 
       expect(soughtTime, isNotNull);

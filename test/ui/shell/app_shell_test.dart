@@ -107,7 +107,7 @@ void main() {
         MaterialApp(
           theme: VlcThemeData.dark().toThemeData(),
           home: AppShell(
-            playerController: VlcPlayerController(),
+            playerController: VlcPlayerController.mock(),
             shellController: controller,
             videoSurface: Container(
               key: const ValueKey('video_surface'),
