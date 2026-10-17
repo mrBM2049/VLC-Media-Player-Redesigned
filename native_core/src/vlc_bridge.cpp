@@ -26,7 +26,6 @@ public:
         }
 
 #ifdef __APPLE__
-        // Automatically discover plugins in standard macOS bundle if not already set
         const char* current_plugin_path = std::getenv("VLC_PLUGIN_PATH");
         if (!current_plugin_path) {
             setenv("VLC_PLUGIN_PATH", "/Applications/VLC.app/Contents/MacOS/plugins", 0);
@@ -59,6 +58,11 @@ public:
         m_muted = false;
         m_spu_delay_us = 0;
         m_audio_delay_us = 0;
+        m_audio_track_id = -1;
+        m_spu_track_id = -1;
+        m_current_chapter = 0;
+        m_equalizer = nullptr;
+        m_equalizer_enabled = false;
         m_initialized = true;
 
         if (m_vlc_player) {
@@ -72,6 +76,14 @@ public:
     void destroy() {
         std::lock_guard<std::mutex> lock(m_mutex);
         if (!m_initialized) return;
+
+        if (m_equalizer) {
+            if (m_vlc_player) {
+                libvlc_media_player_set_equalizer(m_vlc_player, nullptr);
+            }
+            libvlc_audio_equalizer_release(m_equalizer);
+            m_equalizer = nullptr;
+        }
 
         if (m_vlc_player) {
             detach_vlc_events();
@@ -374,6 +386,256 @@ public:
         return 0;
     }
 
+    /* Track Management */
+    int get_audio_track_count() const {
+        if (m_vlc_player) {
+            return libvlc_audio_get_track_count(m_vlc_player);
+        }
+        return 0;
+    }
+
+    int get_audio_track() const {
+        if (m_vlc_player) {
+            int track = libvlc_audio_get_track(m_vlc_player);
+            if (track >= 0) return track;
+        }
+        return m_audio_track_id;
+    }
+
+    int set_audio_track(int track_id) {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (!m_initialized) return -1;
+
+        m_audio_track_id = track_id;
+        if (m_vlc_player) {
+            libvlc_audio_set_track(m_vlc_player, track_id);
+        }
+        dispatch_event(VLC_EVENT_TRACKS_CHANGED, track_id, 0.0f, "AUDIO");
+        return 0;
+    }
+
+    void enumerate_audio_tracks(vlc_track_enumeration_callback_fn callback, void* user_data) {
+        if (!m_vlc_player || !callback) return;
+
+        libvlc_track_description_t* tracks = libvlc_audio_get_track_description(m_vlc_player);
+        for (libvlc_track_description_t* t = tracks; t != nullptr; t = t->p_next) {
+            callback(t->i_id, t->psz_name ? t->psz_name : "", user_data);
+        }
+        if (tracks) {
+            libvlc_track_description_list_release(tracks);
+        }
+    }
+
+    int get_spu_count() const {
+        if (m_vlc_player) {
+            return libvlc_video_get_spu_count(m_vlc_player);
+        }
+        return 0;
+    }
+
+    int get_spu_track() const {
+        if (m_vlc_player) {
+            int spu = libvlc_video_get_spu(m_vlc_player);
+            if (spu >= 0) return spu;
+        }
+        return m_spu_track_id;
+    }
+
+    int set_spu_track(int spu_id) {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (!m_initialized) return -1;
+
+        m_spu_track_id = spu_id;
+        if (m_vlc_player) {
+            libvlc_video_set_spu(m_vlc_player, spu_id);
+        }
+        dispatch_event(VLC_EVENT_TRACKS_CHANGED, spu_id, 0.0f, "SPU");
+        return 0;
+    }
+
+    void enumerate_spu_tracks(vlc_track_enumeration_callback_fn callback, void* user_data) {
+        if (!m_vlc_player || !callback) return;
+
+        libvlc_track_description_t* tracks = libvlc_video_get_spu_description(m_vlc_player);
+        for (libvlc_track_description_t* t = tracks; t != nullptr; t = t->p_next) {
+            callback(t->i_id, t->psz_name ? t->psz_name : "", user_data);
+        }
+        if (tracks) {
+            libvlc_track_description_list_release(tracks);
+        }
+    }
+
+    int add_subtitle_file(const char* file_path, bool select) {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (!m_initialized || !file_path) return -1;
+
+        if (m_vlc_player) {
+            return libvlc_media_player_add_slave(m_vlc_player, libvlc_media_slave_type_subtitle, file_path, select);
+        }
+        return 0;
+    }
+
+    /* Chapter & Title Navigation */
+    int get_chapter_count() const {
+        if (m_vlc_player) {
+            return libvlc_media_player_get_chapter_count(m_vlc_player);
+        }
+        return 0;
+    }
+
+    int get_chapter() const {
+        if (m_vlc_player) {
+            int ch = libvlc_media_player_get_chapter(m_vlc_player);
+            if (ch >= 0) return ch;
+        }
+        return m_current_chapter;
+    }
+
+    int set_chapter(int chapter) {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (!m_initialized) return -1;
+
+        m_current_chapter = chapter;
+        if (m_vlc_player) {
+            libvlc_media_player_set_chapter(m_vlc_player, chapter);
+        }
+        dispatch_event(VLC_EVENT_CHAPTER_CHANGED, chapter, 0.0f, nullptr);
+        return 0;
+    }
+
+    int next_chapter() {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (!m_initialized) return -1;
+
+        m_current_chapter++;
+        if (m_vlc_player && m_state == VLC_PLAYER_STATE_PLAYING) {
+            libvlc_media_player_next_chapter(m_vlc_player);
+            int ch = libvlc_media_player_get_chapter(m_vlc_player);
+            if (ch >= 0) m_current_chapter = ch;
+        }
+        dispatch_event(VLC_EVENT_CHAPTER_CHANGED, m_current_chapter, 0.0f, nullptr);
+        return 0;
+    }
+
+    int previous_chapter() {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (!m_initialized) return -1;
+
+        if (m_current_chapter > 0) m_current_chapter--;
+        if (m_vlc_player && m_state == VLC_PLAYER_STATE_PLAYING) {
+            libvlc_media_player_previous_chapter(m_vlc_player);
+            int ch = libvlc_media_player_get_chapter(m_vlc_player);
+            if (ch >= 0) m_current_chapter = ch;
+        }
+        dispatch_event(VLC_EVENT_CHAPTER_CHANGED, m_current_chapter, 0.0f, nullptr);
+        return 0;
+    }
+
+    /* Frame Stepping & Snapshot */
+    int next_frame() {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (!m_initialized || !m_vlc_player) return -1;
+
+        libvlc_media_player_next_frame(m_vlc_player);
+        return 0;
+    }
+
+    int take_snapshot(const char* filepath, unsigned int width, unsigned int height) {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (!m_initialized || !m_vlc_player || !filepath) return -1;
+
+        return libvlc_video_take_snapshot(m_vlc_player, 0, filepath, width, height);
+    }
+
+    /* 10-Band Equalizer */
+    unsigned int equalizer_get_preset_count() const {
+        return libvlc_audio_equalizer_get_preset_count();
+    }
+
+    const char* equalizer_get_preset_name(unsigned int index) const {
+        return libvlc_audio_equalizer_get_preset_name(index);
+    }
+
+    unsigned int equalizer_get_band_count() const {
+        return libvlc_audio_equalizer_get_band_count();
+    }
+
+    float equalizer_get_band_frequency(unsigned int index) const {
+        return libvlc_audio_equalizer_get_band_frequency(index);
+    }
+
+    int equalizer_set_preset(unsigned int preset_index) {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (!m_initialized) return -1;
+
+        if (preset_index >= libvlc_audio_equalizer_get_preset_count()) return -1;
+
+        if (m_equalizer) {
+            libvlc_audio_equalizer_release(m_equalizer);
+        }
+        m_equalizer = libvlc_audio_equalizer_new_from_preset(preset_index);
+        if (!m_equalizer) return -1;
+
+        if (m_vlc_player && m_equalizer_enabled) {
+            return libvlc_media_player_set_equalizer(m_vlc_player, m_equalizer);
+        }
+        return 0;
+    }
+
+    int equalizer_set_preamp(float preamp) {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (!m_initialized) return -1;
+
+        ensure_equalizer_created();
+        if (!m_equalizer) return -1;
+
+        int res = libvlc_audio_equalizer_set_preamp(m_equalizer, preamp);
+        if (m_vlc_player && m_equalizer_enabled) {
+            libvlc_media_player_set_equalizer(m_vlc_player, m_equalizer);
+        }
+        return res;
+    }
+
+    float equalizer_get_preamp() const {
+        if (!m_equalizer) return 0.0f;
+        return libvlc_audio_equalizer_get_preamp(m_equalizer);
+    }
+
+    int equalizer_set_amp(unsigned int band, float amp) {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (!m_initialized) return -1;
+
+        ensure_equalizer_created();
+        if (!m_equalizer) return -1;
+
+        int res = libvlc_audio_equalizer_set_amp_at_index(m_equalizer, amp, band);
+        if (m_vlc_player && m_equalizer_enabled) {
+            libvlc_media_player_set_equalizer(m_vlc_player, m_equalizer);
+        }
+        return res;
+    }
+
+    float equalizer_get_amp(unsigned int band) const {
+        if (!m_equalizer) return 0.0f;
+        return libvlc_audio_equalizer_get_amp_at_index(m_equalizer, band);
+    }
+
+    int equalizer_enable(bool enable) {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (!m_initialized) return -1;
+
+        m_equalizer_enabled = enable;
+        if (m_vlc_player) {
+            if (enable) {
+                ensure_equalizer_created();
+                return libvlc_media_player_set_equalizer(m_vlc_player, m_equalizer);
+            } else {
+                return libvlc_media_player_set_equalizer(m_vlc_player, nullptr);
+            }
+        }
+        return 0;
+    }
+
     void set_event_callback(vlc_event_callback_fn callback, void* user_data) {
         std::lock_guard<std::mutex> lock(m_mutex);
         m_event_callback = callback;
@@ -391,6 +653,12 @@ private:
     }
     PlayerController(const PlayerController&) = delete;
     PlayerController& operator=(const PlayerController&) = delete;
+
+    void ensure_equalizer_created() {
+        if (!m_equalizer) {
+            m_equalizer = libvlc_audio_equalizer_new();
+        }
+    }
 
     static void handle_vlc_event(const libvlc_event_t* p_event, void* p_data) {
         auto* self = static_cast<PlayerController*>(p_data);
@@ -474,10 +742,15 @@ private:
     bool m_muted{false};
     int64_t m_spu_delay_us{0};
     int64_t m_audio_delay_us{0};
+    int m_audio_track_id{-1};
+    int m_spu_track_id{-1};
+    int m_current_chapter{0};
 
     libvlc_instance_t* m_vlc_instance{nullptr};
     libvlc_media_player_t* m_vlc_player{nullptr};
     libvlc_media_t* m_current_media{nullptr};
+    libvlc_equalizer_t* m_equalizer{nullptr};
+    bool m_equalizer_enabled{false};
 
     vlc_event_callback_fn m_event_callback{nullptr};
     void* m_event_user_data{nullptr};
@@ -587,6 +860,114 @@ int64_t vlc_bridge_get_audio_delay(void) {
 
 int vlc_bridge_set_audio_delay(int64_t delay_us) {
     return vlc_modern::PlayerController::instance().set_audio_delay(delay_us);
+}
+
+/* Track Management */
+int vlc_bridge_get_audio_track_count(void) {
+    return vlc_modern::PlayerController::instance().get_audio_track_count();
+}
+
+int vlc_bridge_get_audio_track(void) {
+    return vlc_modern::PlayerController::instance().get_audio_track();
+}
+
+int vlc_bridge_set_audio_track(int track_id) {
+    return vlc_modern::PlayerController::instance().set_audio_track(track_id);
+}
+
+void vlc_bridge_enumerate_audio_tracks(vlc_track_enumeration_callback_fn callback, void* user_data) {
+    vlc_modern::PlayerController::instance().enumerate_audio_tracks(callback, user_data);
+}
+
+int vlc_bridge_get_spu_count(void) {
+    return vlc_modern::PlayerController::instance().get_spu_count();
+}
+
+int vlc_bridge_get_spu_track(void) {
+    return vlc_modern::PlayerController::instance().get_spu_track();
+}
+
+int vlc_bridge_set_spu_track(int spu_id) {
+    return vlc_modern::PlayerController::instance().set_spu_track(spu_id);
+}
+
+void vlc_bridge_enumerate_spu_tracks(vlc_track_enumeration_callback_fn callback, void* user_data) {
+    vlc_modern::PlayerController::instance().enumerate_spu_tracks(callback, user_data);
+}
+
+int vlc_bridge_add_subtitle_file(const char* file_path, bool select) {
+    return vlc_modern::PlayerController::instance().add_subtitle_file(file_path, select);
+}
+
+/* Chapter & Title Navigation */
+int vlc_bridge_get_chapter_count(void) {
+    return vlc_modern::PlayerController::instance().get_chapter_count();
+}
+
+int vlc_bridge_get_chapter(void) {
+    return vlc_modern::PlayerController::instance().get_chapter();
+}
+
+int vlc_bridge_set_chapter(int chapter) {
+    return vlc_modern::PlayerController::instance().set_chapter(chapter);
+}
+
+int vlc_bridge_next_chapter(void) {
+    return vlc_modern::PlayerController::instance().next_chapter();
+}
+
+int vlc_bridge_previous_chapter(void) {
+    return vlc_modern::PlayerController::instance().previous_chapter();
+}
+
+/* Frame Stepping & Snapshot */
+int vlc_bridge_next_frame(void) {
+    return vlc_modern::PlayerController::instance().next_frame();
+}
+
+int vlc_bridge_take_snapshot(const char* filepath, unsigned int width, unsigned int height) {
+    return vlc_modern::PlayerController::instance().take_snapshot(filepath, width, height);
+}
+
+/* 10-Band Equalizer */
+unsigned int vlc_bridge_equalizer_get_preset_count(void) {
+    return vlc_modern::PlayerController::instance().equalizer_get_preset_count();
+}
+
+const char* vlc_bridge_equalizer_get_preset_name(unsigned int index) {
+    return vlc_modern::PlayerController::instance().equalizer_get_preset_name(index);
+}
+
+unsigned int vlc_bridge_equalizer_get_band_count(void) {
+    return vlc_modern::PlayerController::instance().equalizer_get_band_count();
+}
+
+float vlc_bridge_equalizer_get_band_frequency(unsigned int index) {
+    return vlc_modern::PlayerController::instance().equalizer_get_band_frequency(index);
+}
+
+int vlc_bridge_equalizer_set_preset(unsigned int preset_index) {
+    return vlc_modern::PlayerController::instance().equalizer_set_preset(preset_index);
+}
+
+int vlc_bridge_equalizer_set_preamp(float preamp) {
+    return vlc_modern::PlayerController::instance().equalizer_set_preamp(preamp);
+}
+
+float vlc_bridge_equalizer_get_preamp(void) {
+    return vlc_modern::PlayerController::instance().equalizer_get_preamp();
+}
+
+int vlc_bridge_equalizer_set_amp(unsigned int band, float amp) {
+    return vlc_modern::PlayerController::instance().equalizer_set_amp(band, amp);
+}
+
+float vlc_bridge_equalizer_get_amp(unsigned int band) {
+    return vlc_modern::PlayerController::instance().equalizer_get_amp(band);
+}
+
+int vlc_bridge_equalizer_enable(bool enable) {
+    return vlc_modern::PlayerController::instance().equalizer_enable(enable);
 }
 
 void vlc_bridge_set_event_callback(vlc_event_callback_fn callback, void* user_data) {

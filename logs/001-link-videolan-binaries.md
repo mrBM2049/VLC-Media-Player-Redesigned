@@ -52,3 +52,4 @@ Acquired and linked official VideoLAN `libVLC` (3.0.24 Vetinari) binaries and he
   2. `native_core/src/vlc_bridge.cpp`
   3. `docs/Progress.md`
 - **Known Edge Cases / Blockers:** When running in sandboxed apps or different directories, ensure `VLC_PLUGIN_PATH` points to the plugins directory or bundle. The bridge automatically defaults to `/Applications/VLC.app/Contents/MacOS/plugins` on macOS if not set.
+

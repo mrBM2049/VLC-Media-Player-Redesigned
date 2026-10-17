@@ -50,7 +50,9 @@ typedef enum vlc_event_type_e {
     VLC_EVENT_MUTED_CHANGED = 6,
     VLC_EVENT_RATE_CHANGED = 7,
     VLC_EVENT_MEDIA_PARSED = 8,
-    VLC_EVENT_ERROR = 9
+    VLC_EVENT_ERROR = 9,
+    VLC_EVENT_TRACKS_CHANGED = 10,
+    VLC_EVENT_CHAPTER_CHANGED = 11
 } vlc_event_type_t;
 
 typedef struct vlc_event_payload_s {
@@ -61,13 +63,14 @@ typedef struct vlc_event_payload_s {
 } vlc_event_payload_t;
 
 typedef void (*vlc_event_callback_fn)(const vlc_event_payload_t* payload, void* user_data);
+typedef void (*vlc_track_enumeration_callback_fn)(int id, const char* name, void* user_data);
 
 /* Core Lifecycle */
 VLC_BRIDGE_API int vlc_bridge_init(void);
 VLC_BRIDGE_API void vlc_bridge_destroy(void);
 VLC_BRIDGE_API bool vlc_bridge_is_initialized(void);
 
-/* Media Management */
+/* Media Management & Playback Controls */
 VLC_BRIDGE_API int vlc_bridge_open(const char* mrl);
 VLC_BRIDGE_API int vlc_bridge_play(void);
 VLC_BRIDGE_API int vlc_bridge_pause(void);
@@ -101,6 +104,41 @@ VLC_BRIDGE_API int vlc_bridge_set_spu_delay(int64_t delay_us);
 VLC_BRIDGE_API int64_t vlc_bridge_get_audio_delay(void);
 VLC_BRIDGE_API int vlc_bridge_set_audio_delay(int64_t delay_us);
 
+/* Track Management (Audio & Subtitles / SPU) */
+VLC_BRIDGE_API int vlc_bridge_get_audio_track_count(void);
+VLC_BRIDGE_API int vlc_bridge_get_audio_track(void);
+VLC_BRIDGE_API int vlc_bridge_set_audio_track(int track_id);
+VLC_BRIDGE_API void vlc_bridge_enumerate_audio_tracks(vlc_track_enumeration_callback_fn callback, void* user_data);
+
+VLC_BRIDGE_API int vlc_bridge_get_spu_count(void);
+VLC_BRIDGE_API int vlc_bridge_get_spu_track(void);
+VLC_BRIDGE_API int vlc_bridge_set_spu_track(int spu_id);
+VLC_BRIDGE_API void vlc_bridge_enumerate_spu_tracks(vlc_track_enumeration_callback_fn callback, void* user_data);
+VLC_BRIDGE_API int vlc_bridge_add_subtitle_file(const char* file_path, bool select);
+
+/* Chapter & Title Navigation */
+VLC_BRIDGE_API int vlc_bridge_get_chapter_count(void);
+VLC_BRIDGE_API int vlc_bridge_get_chapter(void);
+VLC_BRIDGE_API int vlc_bridge_set_chapter(int chapter);
+VLC_BRIDGE_API int vlc_bridge_next_chapter(void);
+VLC_BRIDGE_API int vlc_bridge_previous_chapter(void);
+
+/* Frame Stepping & Snapshot Extraction */
+VLC_BRIDGE_API int vlc_bridge_next_frame(void);
+VLC_BRIDGE_API int vlc_bridge_take_snapshot(const char* filepath, unsigned int width, unsigned int height);
+
+/* 10-Band Audio Equalizer (libvlc_audio_equalizer_t) */
+VLC_BRIDGE_API unsigned int vlc_bridge_equalizer_get_preset_count(void);
+VLC_BRIDGE_API const char* vlc_bridge_equalizer_get_preset_name(unsigned int index);
+VLC_BRIDGE_API unsigned int vlc_bridge_equalizer_get_band_count(void);
+VLC_BRIDGE_API float vlc_bridge_equalizer_get_band_frequency(unsigned int index);
+VLC_BRIDGE_API int vlc_bridge_equalizer_set_preset(unsigned int preset_index);
+VLC_BRIDGE_API int vlc_bridge_equalizer_set_preamp(float preamp);
+VLC_BRIDGE_API float vlc_bridge_equalizer_get_preamp(void);
+VLC_BRIDGE_API int vlc_bridge_equalizer_set_amp(unsigned int band, float amp);
+VLC_BRIDGE_API float vlc_bridge_equalizer_get_amp(unsigned int band);
+VLC_BRIDGE_API int vlc_bridge_equalizer_enable(bool enable);
+
 /* Event Dispatch */
 VLC_BRIDGE_API void vlc_bridge_set_event_callback(vlc_event_callback_fn callback, void* user_data);
 
@@ -113,4 +151,3 @@ VLC_BRIDGE_API bool vlc_bridge_has_native_vlc(void);
 #endif
 
 #endif /* VLC_BRIDGE_H */
-

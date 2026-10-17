@@ -2,6 +2,7 @@
 #include <cassert>
 #include <iostream>
 #include <vector>
+#include <string>
 
 static std::vector<vlc_event_type_t> g_dispatched_events;
 
@@ -9,6 +10,11 @@ static void test_callback(const vlc_event_payload_t* payload, void* /*user_data*
     if (payload) {
         g_dispatched_events.push_back(payload->type);
     }
+}
+
+static std::vector<std::pair<int, std::string>> g_enumerated_tracks;
+static void test_track_callback(int id, const char* name, void* /*user_data*/) {
+    g_enumerated_tracks.emplace_back(id, name ? name : "");
 }
 
 int main() {
@@ -48,11 +54,9 @@ int main() {
     vlc_bridge_set_volume(150);
     assert(vlc_bridge_get_volume() == 150);
 
-    // Test upper clamp
     vlc_bridge_set_volume(250);
     assert(vlc_bridge_get_volume() == 200);
 
-    // Test lower clamp
     vlc_bridge_set_volume(-20);
     assert(vlc_bridge_get_volume() == 0);
 
@@ -82,6 +86,49 @@ int main() {
     assert(vlc_bridge_set_audio_delay(sample_audio_delay) == 0);
     assert(vlc_bridge_get_audio_delay() == sample_audio_delay);
 
+    // 7. Track Selection (Audio & SPU)
+    assert(vlc_bridge_set_audio_track(2) == 0);
+    assert(vlc_bridge_get_audio_track() == 2);
+
+    assert(vlc_bridge_set_spu_track(1) == 0);
+    assert(vlc_bridge_get_spu_track() == 1);
+
+    vlc_bridge_enumerate_audio_tracks(test_track_callback, nullptr);
+    vlc_bridge_enumerate_spu_tracks(test_track_callback, nullptr);
+
+    // 8. Chapters
+    assert(vlc_bridge_set_chapter(3) == 0);
+    assert(vlc_bridge_get_chapter() == 3);
+    assert(vlc_bridge_next_chapter() == 0);
+    assert(vlc_bridge_get_chapter() == 4);
+    assert(vlc_bridge_previous_chapter() == 0);
+    assert(vlc_bridge_get_chapter() == 3);
+
+    // 9. 10-Band Equalizer
+    unsigned int preset_count = vlc_bridge_equalizer_get_preset_count();
+    std::cout << "[INFO] Equalizer Preset Count: " << preset_count << std::endl;
+    assert(preset_count > 0);
+    for (unsigned int i = 0; i < std::min(preset_count, 3u); ++i) {
+        const char* name = vlc_bridge_equalizer_get_preset_name(i);
+        std::cout << "  Preset " << i << ": " << (name ? name : "Unknown") << std::endl;
+        assert(name != nullptr);
+    }
+
+    unsigned int band_count = vlc_bridge_equalizer_get_band_count();
+    std::cout << "[INFO] Equalizer Band Count: " << band_count << std::endl;
+    assert(band_count == 10); // Standard libVLC 10-band equalizer
+
+    assert(vlc_bridge_equalizer_set_preset(0) == 0);
+    assert(vlc_bridge_equalizer_set_preamp(3.5f) == 0);
+    assert(vlc_bridge_equalizer_set_amp(0, 4.0f) == 0);
+    assert(vlc_bridge_equalizer_set_amp(9, -2.5f) == 0);
+    assert(vlc_bridge_equalizer_enable(true) == 0);
+    assert(vlc_bridge_equalizer_enable(false) == 0);
+
+    // 10. Frame Step & Snapshot API
+    vlc_bridge_next_frame();
+    vlc_bridge_take_snapshot("/tmp/test_snapshot.png", 0, 0);
+
     // Verify events were dispatched
     assert(!g_dispatched_events.empty());
 
@@ -92,4 +139,3 @@ int main() {
     std::cout << "[PASS] All native_core vlc_bridge tests passed successfully!" << std::endl;
     return 0;
 }
-
