@@ -51,3 +51,4 @@ Engineered and wired `BottomTransportRow` and `FullConeVolumeControl` in `lib/ui
   3. `docs/Progress.md`
 - **Known Edge Cases / Blockers:**
   - Hover thumbnail popup should clamp to the horizontal bounds of the screen so it does not overflow at 00:00 or at the end of the timeline.
+

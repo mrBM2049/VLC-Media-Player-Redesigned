@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'vlc_modern.dart';
 
@@ -162,22 +163,44 @@ class _VlcModernAppState extends State<VlcModernApp> {
               ),
             ),
 
-            // Bottom Transport Row & Cone Volume Control
-            bottomControls: BottomTransportRow(
-              isPlaying: _isPlaying,
-              position: _position,
-              duration: _duration,
-              volume: _volume,
-              isMuted: _isMuted,
-              playbackRate: _playbackRate,
-              repeatMode: _repeatMode,
-              isShuffle: _isShuffle,
-              onPlayPause: () {
-                setState(() => _isPlaying = !_isPlaying);
-              },
-              onPrevious: () {
-                setState(() => _position = Duration.zero);
-              },
+            // Bottom Control Area: Thick Seek Bar + Transport Row
+            bottomControls: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Edge-to-Edge Thick Seek Bar (10dp -> 16dp on hover)
+                ThickSeekBar(
+                  position: _position,
+                  duration: _duration,
+                  bufferProgress: 0.65, // simulated 65% streaming buffer
+                  chapters: const [
+                    ChapterTick(fraction: 0.15, title: 'Chapter 1: Prologue', time: Duration(minutes: 20)),
+                    ChapterTick(fraction: 0.40, title: 'Chapter 2: Mountain Waves', time: Duration(minutes: 54)),
+                    ChapterTick(fraction: 0.70, title: 'Chapter 3: The Black Hole', time: Duration(hours: 1, minutes: 35)),
+                    ChapterTick(fraction: 0.90, title: 'Chapter 4: Epilogue', time: Duration(hours: 2, minutes: 02)),
+                  ],
+                  waveformSamples: List.generate(120, (i) => (math.sin(i * 0.2).abs() * 0.7) + 0.2),
+                  onSeek: (targetTime) {
+                    setState(() => _position = targetTime);
+                    _playerController.setTime(targetTime.inMilliseconds);
+                  },
+                ),
+
+                // Primary Bottom Transport Row
+                BottomTransportRow(
+                  isPlaying: _isPlaying,
+                  position: _position,
+                  duration: _duration,
+                  volume: _volume,
+                  isMuted: _isMuted,
+                  playbackRate: _playbackRate,
+                  repeatMode: _repeatMode,
+                  isShuffle: _isShuffle,
+                  onPlayPause: () {
+                    setState(() => _isPlaying = !_isPlaying);
+                  },
+                  onPrevious: () {
+                    setState(() => _position = Duration.zero);
+                  },
               onNext: () {
                 setState(() => _position = _duration);
               },

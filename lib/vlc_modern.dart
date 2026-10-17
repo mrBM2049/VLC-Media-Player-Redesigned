@@ -17,3 +17,4 @@ export 'ui/shell/top_player_bar.dart';
 // UI Controls (Phase 2)
 export 'ui/controls/volume_control.dart';
 export 'ui/controls/bottom_transport_row.dart';
+export 'ui/controls/thick_seek_bar.dart';

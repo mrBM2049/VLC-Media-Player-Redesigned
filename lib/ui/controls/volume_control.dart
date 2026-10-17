@@ -291,3 +291,4 @@ class _ConeVolumeSliderPainter extends CustomPainter {
         oldDelegate.surfaceColor != surfaceColor;
   }
 }
+
