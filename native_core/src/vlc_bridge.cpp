@@ -1,4 +1,5 @@
 #include "vlc_bridge.h"
+#include <vlc/vlc.h>
 
 #include <atomic>
 #include <mutex>
@@ -6,6 +7,8 @@
 #include <vector>
 #include <algorithm>
 #include <cstring>
+#include <cstdlib>
+#include <iostream>
 
 namespace vlc_modern {
 
@@ -22,6 +25,31 @@ public:
             return true;
         }
 
+#ifdef __APPLE__
+        // Automatically discover plugins in standard macOS bundle if not already set
+        const char* current_plugin_path = std::getenv("VLC_PLUGIN_PATH");
+        if (!current_plugin_path) {
+            setenv("VLC_PLUGIN_PATH", "/Applications/VLC.app/Contents/MacOS/plugins", 0);
+        }
+#endif
+
+        const char* const vlc_args[] = {
+            "--no-video-title-show",
+            "--no-snapshot-preview",
+            "--no-osd",
+            "--network-caching=1500",
+            "--sub-autodetect-fuzzy=2"
+        };
+        int argc = sizeof(vlc_args) / sizeof(vlc_args[0]);
+
+        m_vlc_instance = libvlc_new(argc, vlc_args);
+        if (m_vlc_instance) {
+            m_vlc_player = libvlc_media_player_new(m_vlc_instance);
+            if (m_vlc_player) {
+                attach_vlc_events();
+            }
+        }
+
         m_state = VLC_PLAYER_STATE_IDLE;
         m_time_ms = 0;
         m_length_ms = 0;
@@ -33,6 +61,10 @@ public:
         m_audio_delay_us = 0;
         m_initialized = true;
 
+        if (m_vlc_player) {
+            libvlc_audio_set_volume(m_vlc_player, m_volume);
+        }
+
         dispatch_event(VLC_EVENT_STATE_CHANGED, m_state, 0.0f, "IDLE");
         return true;
     }
@@ -40,6 +72,23 @@ public:
     void destroy() {
         std::lock_guard<std::mutex> lock(m_mutex);
         if (!m_initialized) return;
+
+        if (m_vlc_player) {
+            detach_vlc_events();
+            libvlc_media_player_stop(m_vlc_player);
+            libvlc_media_player_release(m_vlc_player);
+            m_vlc_player = nullptr;
+        }
+
+        if (m_current_media) {
+            libvlc_media_release(m_current_media);
+            m_current_media = nullptr;
+        }
+
+        if (m_vlc_instance) {
+            libvlc_release(m_vlc_instance);
+            m_vlc_instance = nullptr;
+        }
 
         m_state = VLC_PLAYER_STATE_STOPPED;
         m_initialized = false;
@@ -61,6 +110,23 @@ public:
         m_time_ms = 0;
         m_position = 0.0f;
 
+        if (m_vlc_instance && m_vlc_player) {
+            if (m_current_media) {
+                libvlc_media_release(m_current_media);
+                m_current_media = nullptr;
+            }
+
+            if (mrl.find("://") != std::string::npos) {
+                m_current_media = libvlc_media_new_location(m_vlc_instance, mrl.c_str());
+            } else {
+                m_current_media = libvlc_media_new_path(m_vlc_instance, mrl.c_str());
+            }
+
+            if (m_current_media) {
+                libvlc_media_player_set_media(m_vlc_player, m_current_media);
+            }
+        }
+
         dispatch_event(VLC_EVENT_STATE_CHANGED, m_state, 0.0f, mrl.c_str());
         return 0;
     }
@@ -68,6 +134,10 @@ public:
     int play() {
         std::lock_guard<std::mutex> lock(m_mutex);
         if (!m_initialized || m_current_mrl.empty()) return -1;
+
+        if (m_vlc_player) {
+            libvlc_media_player_play(m_vlc_player);
+        }
 
         m_state = VLC_PLAYER_STATE_PLAYING;
         dispatch_event(VLC_EVENT_STATE_CHANGED, m_state, m_position, "PLAYING");
@@ -77,6 +147,10 @@ public:
     int pause() {
         std::lock_guard<std::mutex> lock(m_mutex);
         if (!m_initialized) return -1;
+
+        if (m_vlc_player) {
+            libvlc_media_player_set_pause(m_vlc_player, 1);
+        }
 
         if (m_state == VLC_PLAYER_STATE_PLAYING) {
             m_state = VLC_PLAYER_STATE_PAUSED;
@@ -88,6 +162,10 @@ public:
     int toggle_play() {
         std::lock_guard<std::mutex> lock(m_mutex);
         if (!m_initialized || m_current_mrl.empty()) return -1;
+
+        if (m_vlc_player) {
+            libvlc_media_player_pause(m_vlc_player);
+        }
 
         if (m_state == VLC_PLAYER_STATE_PLAYING) {
             m_state = VLC_PLAYER_STATE_PAUSED;
@@ -103,6 +181,10 @@ public:
         std::lock_guard<std::mutex> lock(m_mutex);
         if (!m_initialized) return -1;
 
+        if (m_vlc_player) {
+            libvlc_media_player_stop(m_vlc_player);
+        }
+
         m_state = VLC_PLAYER_STATE_STOPPED;
         m_time_ms = 0;
         m_position = 0.0f;
@@ -111,6 +193,10 @@ public:
     }
 
     int64_t get_time() const {
+        if (m_vlc_player) {
+            libvlc_time_t t = libvlc_media_player_get_time(m_vlc_player);
+            if (t >= 0) return t;
+        }
         return m_time_ms;
     }
 
@@ -119,6 +205,10 @@ public:
         if (!m_initialized) return -1;
 
         m_time_ms = std::max<int64_t>(0, time_ms);
+        if (m_vlc_player) {
+            libvlc_media_player_set_time(m_vlc_player, static_cast<libvlc_time_t>(m_time_ms));
+        }
+
         if (m_length_ms > 0) {
             m_position = static_cast<float>(m_time_ms) / static_cast<float>(m_length_ms);
             m_position = std::clamp(m_position, 0.0f, 1.0f);
@@ -128,6 +218,10 @@ public:
     }
 
     int64_t get_length() const {
+        if (m_vlc_player) {
+            libvlc_time_t len = libvlc_media_player_get_length(m_vlc_player);
+            if (len >= 0) return len;
+        }
         return m_length_ms;
     }
 
@@ -138,6 +232,10 @@ public:
     }
 
     float get_position() const {
+        if (m_vlc_player) {
+            float pos = libvlc_media_player_get_position(m_vlc_player);
+            if (pos >= 0.0f) return pos;
+        }
         return m_position;
     }
 
@@ -146,6 +244,10 @@ public:
         if (!m_initialized) return -1;
 
         m_position = std::clamp(position, 0.0f, 1.0f);
+        if (m_vlc_player) {
+            libvlc_media_player_set_position(m_vlc_player, m_position);
+        }
+
         if (m_length_ms > 0) {
             m_time_ms = static_cast<int64_t>(m_position * static_cast<float>(m_length_ms));
         }
@@ -154,6 +256,10 @@ public:
     }
 
     float get_rate() const {
+        if (m_vlc_player) {
+            float r = libvlc_media_player_get_rate(m_vlc_player);
+            if (r > 0.0f) return r;
+        }
         return m_rate;
     }
 
@@ -161,13 +267,19 @@ public:
         std::lock_guard<std::mutex> lock(m_mutex);
         if (!m_initialized) return -1;
 
-        // Supported range: 0.25x to 4.0x
         m_rate = std::clamp(rate, 0.25f, 4.0f);
+        if (m_vlc_player) {
+            libvlc_media_player_set_rate(m_vlc_player, m_rate);
+        }
         dispatch_event(VLC_EVENT_RATE_CHANGED, 0, m_rate, nullptr);
         return 0;
     }
 
     int get_volume() const {
+        if (m_vlc_player) {
+            int vol = libvlc_audio_get_volume(m_vlc_player);
+            if (vol >= 0) return vol;
+        }
         return m_volume;
     }
 
@@ -175,13 +287,19 @@ public:
         std::lock_guard<std::mutex> lock(m_mutex);
         if (!m_initialized) return -1;
 
-        // VLC Cone Volume: 0% to 200%
         m_volume = std::clamp(volume, 0, 200);
+        if (m_vlc_player) {
+            libvlc_audio_set_volume(m_vlc_player, m_volume);
+        }
         dispatch_event(VLC_EVENT_VOLUME_CHANGED, m_volume, static_cast<float>(m_volume) / 100.0f, nullptr);
         return 0;
     }
 
     bool get_mute() const {
+        if (m_vlc_player) {
+            int mute = libvlc_audio_get_mute(m_vlc_player);
+            if (mute >= 0) return mute != 0;
+        }
         return m_muted;
     }
 
@@ -190,6 +308,9 @@ public:
         if (!m_initialized) return -1;
 
         m_muted = mute;
+        if (m_vlc_player) {
+            libvlc_audio_set_mute(m_vlc_player, m_muted ? 1 : 0);
+        }
         dispatch_event(VLC_EVENT_MUTED_CHANGED, m_muted ? 1 : 0, 0.0f, nullptr);
         return 0;
     }
@@ -199,10 +320,27 @@ public:
     }
 
     vlc_player_state_t get_state() const {
+        if (m_vlc_player) {
+            libvlc_state_t st = libvlc_media_player_get_state(m_vlc_player);
+            switch (st) {
+                case libvlc_NothingSpecial: return m_state;
+                case libvlc_Opening:        return VLC_PLAYER_STATE_OPENING;
+                case libvlc_Buffering:      return VLC_PLAYER_STATE_BUFFERING;
+                case libvlc_Playing:        return VLC_PLAYER_STATE_PLAYING;
+                case libvlc_Paused:         return VLC_PLAYER_STATE_PAUSED;
+                case libvlc_Stopped:        return VLC_PLAYER_STATE_STOPPED;
+                case libvlc_Ended:          return VLC_PLAYER_STATE_ENDED;
+                case libvlc_Error:          return VLC_PLAYER_STATE_ERROR;
+            }
+        }
         return m_state;
     }
 
     int64_t get_spu_delay() const {
+        if (m_vlc_player) {
+            int64_t d = libvlc_video_get_spu_delay(m_vlc_player);
+            if (d != 0) return d;
+        }
         return m_spu_delay_us;
     }
 
@@ -211,10 +349,17 @@ public:
         if (!m_initialized) return -1;
 
         m_spu_delay_us = delay_us;
+        if (m_vlc_player) {
+            libvlc_video_set_spu_delay(m_vlc_player, delay_us);
+        }
         return 0;
     }
 
     int64_t get_audio_delay() const {
+        if (m_vlc_player) {
+            int64_t d = libvlc_audio_get_delay(m_vlc_player);
+            if (d != 0) return d;
+        }
         return m_audio_delay_us;
     }
 
@@ -223,6 +368,9 @@ public:
         if (!m_initialized) return -1;
 
         m_audio_delay_us = delay_us;
+        if (m_vlc_player) {
+            libvlc_audio_set_delay(m_vlc_player, delay_us);
+        }
         return 0;
     }
 
@@ -232,11 +380,76 @@ public:
         m_event_user_data = user_data;
     }
 
+    bool has_native_vlc() const {
+        return m_vlc_instance != nullptr && m_vlc_player != nullptr;
+    }
+
 private:
     PlayerController() = default;
-    ~PlayerController() = default;
+    ~PlayerController() {
+        destroy();
+    }
     PlayerController(const PlayerController&) = delete;
     PlayerController& operator=(const PlayerController&) = delete;
+
+    static void handle_vlc_event(const libvlc_event_t* p_event, void* p_data) {
+        auto* self = static_cast<PlayerController*>(p_data);
+        if (!self || !p_event) return;
+
+        switch (p_event->type) {
+            case libvlc_MediaPlayerPlaying:
+                self->dispatch_event(VLC_EVENT_STATE_CHANGED, VLC_PLAYER_STATE_PLAYING, 0.0f, "PLAYING");
+                break;
+            case libvlc_MediaPlayerPaused:
+                self->dispatch_event(VLC_EVENT_STATE_CHANGED, VLC_PLAYER_STATE_PAUSED, 0.0f, "PAUSED");
+                break;
+            case libvlc_MediaPlayerStopped:
+                self->dispatch_event(VLC_EVENT_STATE_CHANGED, VLC_PLAYER_STATE_STOPPED, 0.0f, "STOPPED");
+                break;
+            case libvlc_MediaPlayerTimeChanged:
+                self->dispatch_event(VLC_EVENT_TIME_CHANGED, p_event->u.media_player_time_changed.new_time, 0.0f, nullptr);
+                break;
+            case libvlc_MediaPlayerPositionChanged:
+                self->dispatch_event(VLC_EVENT_POSITION_CHANGED, 0, p_event->u.media_player_position_changed.new_position, nullptr);
+                break;
+            case libvlc_MediaPlayerLengthChanged:
+                self->dispatch_event(VLC_EVENT_LENGTH_CHANGED, p_event->u.media_player_length_changed.new_length, 0.0f, nullptr);
+                break;
+            case libvlc_MediaPlayerEncounteredError:
+                self->dispatch_event(VLC_EVENT_ERROR, 0, 0.0f, "VLC Media Player Error");
+                break;
+            default:
+                break;
+        }
+    }
+
+    void attach_vlc_events() {
+        if (!m_vlc_player) return;
+        libvlc_event_manager_t* em = libvlc_media_player_event_manager(m_vlc_player);
+        if (!em) return;
+
+        libvlc_event_attach(em, libvlc_MediaPlayerPlaying, handle_vlc_event, this);
+        libvlc_event_attach(em, libvlc_MediaPlayerPaused, handle_vlc_event, this);
+        libvlc_event_attach(em, libvlc_MediaPlayerStopped, handle_vlc_event, this);
+        libvlc_event_attach(em, libvlc_MediaPlayerTimeChanged, handle_vlc_event, this);
+        libvlc_event_attach(em, libvlc_MediaPlayerPositionChanged, handle_vlc_event, this);
+        libvlc_event_attach(em, libvlc_MediaPlayerLengthChanged, handle_vlc_event, this);
+        libvlc_event_attach(em, libvlc_MediaPlayerEncounteredError, handle_vlc_event, this);
+    }
+
+    void detach_vlc_events() {
+        if (!m_vlc_player) return;
+        libvlc_event_manager_t* em = libvlc_media_player_event_manager(m_vlc_player);
+        if (!em) return;
+
+        libvlc_event_detach(em, libvlc_MediaPlayerPlaying, handle_vlc_event, this);
+        libvlc_event_detach(em, libvlc_MediaPlayerPaused, handle_vlc_event, this);
+        libvlc_event_detach(em, libvlc_MediaPlayerStopped, handle_vlc_event, this);
+        libvlc_event_detach(em, libvlc_MediaPlayerTimeChanged, handle_vlc_event, this);
+        libvlc_event_detach(em, libvlc_MediaPlayerPositionChanged, handle_vlc_event, this);
+        libvlc_event_detach(em, libvlc_MediaPlayerLengthChanged, handle_vlc_event, this);
+        libvlc_event_detach(em, libvlc_MediaPlayerEncounteredError, handle_vlc_event, this);
+    }
 
     void dispatch_event(vlc_event_type_t type, int64_t int_val, float float_val, const char* str_val) {
         if (m_event_callback) {
@@ -261,6 +474,10 @@ private:
     bool m_muted{false};
     int64_t m_spu_delay_us{0};
     int64_t m_audio_delay_us{0};
+
+    libvlc_instance_t* m_vlc_instance{nullptr};
+    libvlc_media_player_t* m_vlc_player{nullptr};
+    libvlc_media_t* m_current_media{nullptr};
 
     vlc_event_callback_fn m_event_callback{nullptr};
     void* m_event_user_data{nullptr};
@@ -377,12 +594,11 @@ void vlc_bridge_set_event_callback(vlc_event_callback_fn callback, void* user_da
 }
 
 const char* vlc_bridge_get_version(void) {
-    return "VLC-Modern-Core 1.0.0 (libVLC 3.x/4.0 ABI Compatible)";
+    return libvlc_get_version();
 }
 
 bool vlc_bridge_has_native_vlc(void) {
-    // Dynamic loading hook - returns true when linked against live libvlc dylib/so/dll
-    return true;
+    return vlc_modern::PlayerController::instance().has_native_vlc();
 }
 
 }

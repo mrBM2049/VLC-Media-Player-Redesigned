@@ -6,10 +6,10 @@
 
 ## Current Status Summary
 - **Current Active Phase:** `Phase 1 — Multi-Platform Native Workspace & libVLC Hardware Surface Bootstrap`
-- **Current Next Task:** `1.2 Link official VideoLAN binaries (libvlc / VLCKit on macOS & iOS, libvlcjni on Android, libvlc.dll on Windows)`
+- **Current Next Task:** `1.3 Implement player_controller C/FFI bridge (play, pause, stop, seek, rate, volume 0–200%)`
 - **Chosen UI / Native Stack:** `Flutter Impeller + C++ FFI (Option A) with Direct libvlc C ABI`
-- **Latest Handoff Log:** `logs/000-project-init.md`
-- **Overall Completion:** `1 / 28 Tasks (3.6%)`
+- **Latest Handoff Log:** `logs/001-link-videolan-binaries.md`
+- **Overall Completion:** `2 / 28 Tasks (7.1%)`
 - **Last Updated:** `2026-10-18`
 
 ---
@@ -17,7 +17,7 @@
 ## Module Ownership & File Map (Updated as files are created)
 | Module | Directory / Primary Files | Status | Last Log Ref |
 | :--- | :--- | :--- | :--- |
-| **Native `libVLC` Core Bridge** | `native_core/include/vlc_bridge.h`, `native_core/src/vlc_bridge.cpp`, `native_core/tests/` | In Progress (Scaffold Verified) | `logs/000-project-init.md` |
+| **Native `libVLC` Core Bridge** | `native_core/include/vlc/`, `native_core/lib/macos/`, `native_core/src/vlc_bridge.cpp` | Linked (3.0.24 Live Verified) | `logs/001-link-videolan-binaries.md` |
 | **Hardware Video Surfaces** | `hardware_surface.mm` (Metal), `hardware_surface_d3d11.cpp`, `hardware_surface_jni.cpp`[span_10](start_span)[span_10](end_span) | Not Started | — |
 | **Design Tokens & Theme Engine** | `lib/theme/` (Dark/Light, `#FF8800` Cone Orange, Custom Accent, Dual Icons)[span_11](start_span)[span_11](end_span) | Not Started | — |
 | **Shell, TopBar & OSD Layer** | `lib/ui/shell/` (`AppShell`, `TopPlayerBar`, `OSDNotificationLayer`, `MiniPlayerOverlay`)[span_12](start_span)[span_12](end_span) | Not Started | — |
@@ -32,7 +32,7 @@
 
 ### Phase 1: Multi-Platform Native Workspace & `libVLC` Hardware Surface Bootstrap
 - [x] **1.1** Initialize cross-platform native project (`macos/`, `windows/`, `ios/`, `android/`) and `native_core/` CMake scaffold.
-- [ ] **1.2** Link official VideoLAN binaries (`libvlc` / `VLCKit` on macOS & iOS, `libvlcjni` on Android, `libvlc.dll` on Windows)[span_18](start_span)[span_18](end_span).
+- [x] **1.2** Link official VideoLAN binaries (`libvlc` / `VLCKit` on macOS & iOS, `libvlcjni` on Android, `libvlc.dll` on Windows).
 - [ ] **1.3** Implement `player_controller` C/FFI bridge (`play`, `pause`, `stop`, `seek`, `rate`, `volume` 0–200%)[span_19](start_span)[span_19](end_span).
 - [ ] **1.4** Bind zero-copy GPU hardware video surfaces (`Metal CVPixelBuffer` on Apple, `D3D11 SwapChain` on Windows, `SurfaceTexture` on Android) so UI overlays render cleanly over 4K video[span_20](start_span)[span_20](end_span).
 - [ ] **1.5** Run `/ponytail-review` on Phase 1 FFI memory safety and write `logs/001-phase1-complete.md`.

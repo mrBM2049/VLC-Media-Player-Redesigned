@@ -20,25 +20,45 @@ target_include_directories(vlc_modern_core PUBLIC
     $<INSTALL_INTERFACE:include>
 )
 
-# Platform-specific frameworks and flags
+# Platform-specific linking and RPATH
 if(APPLE)
+    target_link_directories(vlc_modern_core PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/lib/macos
+        /Applications/VLC.app/Contents/MacOS/lib
+    )
     target_link_libraries(vlc_modern_core PRIVATE
         "-framework Foundation"
         "-framework Metal"
         "-framework CoreVideo"
+        "-framework Cocoa"
+        vlc
+        vlccore
+    )
+    set_target_properties(vlc_modern_core PROPERTIES
+        BUILD_WITH_INSTALL_RPATH TRUE
+        INSTALL_RPATH "@loader_path/../lib/macos;@loader_path;@executable_path/../lib/macos;/Applications/VLC.app/Contents/MacOS/lib"
     )
 elseif(WIN32)
-    # Direct3D 11 support
+    # Direct3D 11 support & libvlc
+    target_link_directories(vlc_modern_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/lib/windows)
     target_link_libraries(vlc_modern_core PRIVATE d3d11 dxgi)
 elseif(ANDROID)
+    target_link_directories(vlc_modern_core PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/lib/android)
     target_link_libraries(vlc_modern_core PRIVATE android log)
 endif()
 
 # Unit Test Executable
-enable_testing()
 add_executable(native_core_tests
     tests/test_vlc_bridge.cpp
 )
 
 target_link_libraries(native_core_tests PRIVATE vlc_modern_core)
+
+if(APPLE)
+    set_target_properties(native_core_tests PROPERTIES
+        BUILD_WITH_INSTALL_RPATH TRUE
+        INSTALL_RPATH "@executable_path/../../native_core;@loader_path;${CMAKE_CURRENT_SOURCE_DIR}/lib/macos;/Applications/VLC.app/Contents/MacOS/lib"
+    )
+endif()
+
 add_test(NAME native_core_tests COMMAND native_core_tests)

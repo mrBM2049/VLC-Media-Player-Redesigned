@@ -10,3 +10,4 @@ target_link_libraries(VLCModernApp PRIVATE
     d3d11
     dxgi
 )
+

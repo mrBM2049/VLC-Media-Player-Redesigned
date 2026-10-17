@@ -34,3 +34,4 @@ extern "C" JNIEXPORT jint JNICALL
 Java_org_videolan_vlcmodern_VLCBridge_stop(JNIEnv* env, jobject /* this */) {
     return vlc_bridge_stop();
 }
+

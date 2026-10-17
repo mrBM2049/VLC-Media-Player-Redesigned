@@ -11,3 +11,4 @@ target_link_libraries(VLCModernIOS PRIVATE
     "-framework Metal"
     "-framework AVFoundation"
 )
+

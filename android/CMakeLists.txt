@@ -10,3 +10,4 @@ target_link_libraries(vlc_modern_jni PRIVATE
     android
     log
 )
+

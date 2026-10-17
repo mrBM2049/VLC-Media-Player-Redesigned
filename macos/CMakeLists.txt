@@ -12,3 +12,4 @@ target_link_libraries(VLCModernApp PRIVATE
     "-framework MetalKit"
     "-framework CoreVideo"
 )
+

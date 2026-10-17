@@ -113,3 +113,4 @@ VLC_BRIDGE_API bool vlc_bridge_has_native_vlc(void);
 #endif
 
 #endif /* VLC_BRIDGE_H */
+

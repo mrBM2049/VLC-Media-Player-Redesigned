@@ -43,3 +43,4 @@ Initialized the modern VLC cross-platform repository scaffold. Created the C++20
   2. `native_core/src/vlc_bridge.cpp`
   3. `docs/Progress.md`
 - **Known Edge Cases / Blockers:** When linking native VideoLAN binaries on macOS, ensure `VLCKit.framework` or `libvlc.dylib` is placed in a discoverable library path with `@rpath` configured for runtime loading.
+

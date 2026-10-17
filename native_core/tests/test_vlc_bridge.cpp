@@ -21,6 +21,9 @@ int main() {
     assert(vlc_bridge_is_initialized());
     assert(vlc_bridge_get_state() == VLC_PLAYER_STATE_IDLE);
 
+    std::cout << "[INFO] Bound libVLC Version: " << vlc_bridge_get_version() << std::endl;
+    assert(vlc_bridge_has_native_vlc());
+
     // 2. Event Callback
     vlc_bridge_set_event_callback(test_callback, nullptr);
 
@@ -89,3 +92,4 @@ int main() {
     std::cout << "[PASS] All native_core vlc_bridge tests passed successfully!" << std::endl;
     return 0;
 }
+
