@@ -102,6 +102,8 @@ public:
             m_vlc_instance = nullptr;
         }
 
+        vlc_surface_destroy();
+
         m_state = VLC_PLAYER_STATE_STOPPED;
         m_initialized = false;
         m_current_mrl.clear();

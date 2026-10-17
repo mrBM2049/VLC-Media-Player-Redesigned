@@ -57,3 +57,4 @@ Architected and implemented zero-copy GPU hardware video surface rendering acros
   3. `native_core/src/hardware_surface_metal.mm`
   4. `docs/Progress.md`
 - **Known Edge Cases / Blockers:** Ensure `vlc_surface_destroy()` is called upon player teardown to cleanly flush the `CVPixelBufferPool` and `CVMetalTextureCache`.
+

@@ -67,3 +67,4 @@ VLC_SURFACE_API void vlc_surface_format_cleanup(void);
 #endif
 
 #endif /* HARDWARE_SURFACE_H */
+

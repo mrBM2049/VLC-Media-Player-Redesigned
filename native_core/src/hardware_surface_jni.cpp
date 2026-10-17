@@ -41,3 +41,4 @@ private:
 
 } // namespace vlc_modern
 #endif
+

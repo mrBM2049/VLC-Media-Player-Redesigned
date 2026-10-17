@@ -5,11 +5,11 @@
 ---
 
 ## Current Status Summary
-- **Current Active Phase:** `Phase 1 — Multi-Platform Native Workspace & libVLC Hardware Surface Bootstrap`
-- **Current Next Task:** `1.5 Run /ponytail-review on Phase 1 FFI memory safety and write logs/001-phase1-complete.md`
+- **Current Active Phase:** `Phase 2 — Design System, AppShell, Top/Bottom Bars & Thick Seek Bar`
+- **Current Next Task:** `2.1 Extract Figma tokens (TKMz3UlzGRDOxFHHXq4Bln) into theme/: Dark/Light palettes, #FF8800 accent color engine, rectangular 4dp–8dp geometry, and Dual Icon sets`
 - **Chosen UI / Native Stack:** `Flutter Impeller + C++ FFI (Option A) with Direct libvlc C ABI`
-- **Latest Handoff Log:** `logs/003-hardware-video-surfaces.md`
-- **Overall Completion:** `4 / 28 Tasks (14.3%)`
+- **Latest Handoff Log:** `logs/001-phase1-complete.md`
+- **Overall Completion:** `5 / 28 Tasks (17.9%)`
 - **Last Updated:** `2026-10-18`
 
 ---
@@ -35,7 +35,7 @@
 - [x] **1.2** Link official VideoLAN binaries (`libvlc` / `VLCKit` on macOS & iOS, `libvlcjni` on Android, `libvlc.dll` on Windows).
 - [x] **1.3** Implement `player_controller` C/FFI bridge (`play`, `pause`, `stop`, `seek`, `rate`, `volume` 0–200%).
 - [x] **1.4** Bind zero-copy GPU hardware video surfaces (`Metal CVPixelBuffer` on Apple, `D3D11 SwapChain` on Windows, `SurfaceTexture` on Android) so UI overlays render cleanly over 4K video.
-- [ ] **1.5** Run `/ponytail-review` on Phase 1 FFI memory safety and write `logs/001-phase1-complete.md`.
+- [x] **1.5** Run `/ponytail-review` on Phase 1 FFI memory safety and write `logs/001-phase1-complete.md`.
 
 ### Phase 2: Design System, `AppShell`, Top/Bottom Bars & Thick Seek Bar
 - [ ] **2.1** Extract Figma tokens (`TKMz3UlzGRDOxFHHXq4Bln`) into `theme/`: Dark/Light palettes, `#FF8800` accent color engine, rectangular `4dp–8dp` geometry, and Dual Icon sets (Two-Tone vs. Monochrome)[span_21](start_span)[span_21](end_span).
