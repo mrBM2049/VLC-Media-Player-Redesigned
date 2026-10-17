@@ -515,3 +515,4 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
     );
   }
 }
+

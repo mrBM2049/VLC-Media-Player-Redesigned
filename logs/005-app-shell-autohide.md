@@ -45,3 +45,4 @@ Architected and implemented `AppShell` and `AppShellController` in `lib/ui/shell
   3. `docs/Progress.md`
 - **Known Edge Cases / Blockers:**
   - On macOS, when in non-fullscreen windowed mode, ensure spacing for native traffic light window buttons (padding left ~70dp) or embed them when custom titlebars are enabled.
+

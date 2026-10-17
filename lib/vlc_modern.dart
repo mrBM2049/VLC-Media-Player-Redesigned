@@ -12,3 +12,4 @@ export 'theme/vlc_theme.dart';
 
 // UI Shell (Phase 2)
 export 'ui/shell/app_shell.dart';
+export 'ui/shell/top_player_bar.dart';
