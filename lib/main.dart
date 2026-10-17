@@ -18,6 +18,7 @@ class _VlcModernAppState extends State<VlcModernApp> {
   late final VlcThemeController _themeController;
   late final VlcPlayerController _playerController;
   late final AppShellController _shellController;
+  late final OsdNotificationController _osdController;
 
   String _mediaTitle = 'Big Buck Bunny (4K Remux)';
   String _folderName = 'Demo Media';
@@ -42,6 +43,31 @@ class _VlcModernAppState extends State<VlcModernApp> {
     // Initialize VideoLAN C ABI Bridge Controller
     _playerController = VlcPlayerController();
     _shellController = AppShellController();
+    _osdController = OsdNotificationController();
+
+    // Trigger initial resume prompt preview
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _osdController.showResumePrompt(
+        mediaTitle: _mediaTitle,
+        resumePosition: const Duration(minutes: 14, seconds: 28),
+        onResume: () {
+          setState(() => _position = const Duration(minutes: 14, seconds: 28));
+          _osdController.showPill(
+            action: 'Resumed at 14:28',
+            shortcutKey: 'Space',
+            icon: VlcIconGlyph.play,
+          );
+        },
+        onStartOver: () {
+          setState(() => _position = Duration.zero);
+          _osdController.showPill(
+            action: 'Started Over',
+            shortcutKey: '0',
+            icon: VlcIconGlyph.previous,
+          );
+        },
+      );
+    });
   }
 
   void _onThemeChanged() {
@@ -53,6 +79,7 @@ class _VlcModernAppState extends State<VlcModernApp> {
     _themeController.removeListener(_onThemeChanged);
     _themeController.dispose();
     _shellController.dispose();
+    _osdController.dispose();
     super.dispose();
   }
 
@@ -85,6 +112,7 @@ class _VlcModernAppState extends State<VlcModernApp> {
             shellController: _shellController,
             isFullscreen: _isFullscreen,
             onFullscreenToggle: _toggleFullscreen,
+            osdLayer: OSDNotificationLayer(controller: _osdController),
 
             // Top Player Bar with Theme Switch, Breadcrumbs & Actions
             topBar: TopPlayerBar(
@@ -97,6 +125,11 @@ class _VlcModernAppState extends State<VlcModernApp> {
               themeMode: _themeController.mode,
               onThemeModeChanged: (mode) {
                 _themeController.setThemeMode(mode);
+                _osdController.showPill(
+                  action: 'Theme: ${mode.name.toUpperCase()}',
+                  shortcutKey: 'T',
+                  icon: VlcIconGlyph.themeDark,
+                );
               },
               onPipToggle: _togglePip,
               onFullscreenToggle: _toggleFullscreen,
@@ -213,14 +246,29 @@ class _VlcModernAppState extends State<VlcModernApp> {
               onVolumeChanged: (vol) {
                 setState(() => _volume = vol);
                 _playerController.setVolume(vol);
+                _osdController.showPill(
+                  action: vol > 100 ? 'Volume $vol% (Overdrive)' : 'Volume $vol%',
+                  shortcutKey: '↑/↓',
+                  icon: vol > 100 ? VlcIconGlyph.volumeCone : VlcIconGlyph.volumeHigh,
+                );
               },
               onToggleMute: () {
                 setState(() => _isMuted = !_isMuted);
                 _playerController.toggleMute();
+                _osdController.showPill(
+                  action: _isMuted ? 'Muted' : 'Unmuted (${_volume}%)',
+                  shortcutKey: 'M',
+                  icon: _isMuted ? VlcIconGlyph.volumeMute : VlcIconGlyph.volumeHigh,
+                );
               },
               onRateChanged: (rate) {
                 setState(() => _playbackRate = rate);
                 _playerController.setRate(rate);
+                _osdController.showPill(
+                  action: 'Playback Speed: ${rate.toStringAsFixed(2)}x',
+                  shortcutKey: '>',
+                  icon: VlcIconGlyph.speed,
+                );
               },
               onSubtitlesTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(

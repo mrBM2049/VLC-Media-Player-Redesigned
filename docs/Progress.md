@@ -5,11 +5,11 @@
 ---
 
 ## Current Status Summary
-- **Current Active Phase:** `Phase 2 — Design System, AppShell, Top/Bottom Bars & Thick Seek Bar`
-- **Current Next Task:** `2.6 Build OSDNotificationLayer with Shortcut-Aware Top-Right Pill (Action [Key]) and Bottom-Center 5s "Continue Watching" Prompt`
+- **Current Active Phase:** `Phase 3 — Quick Popups, Batch Subtitle Auto-Matcher & 4-Tab Inspector Sidebar`
+- **Current Next Task:** `3.1 Build SubtitleQuickPopup (libvlc_video_get_spu_description) and AddSubtitlesModal with This File / This Folder / This Playlist scopes, OpenSubtitles REST API search, and batch season episode fuzzy-matcher`
 - **Chosen UI / Native Stack:** `Flutter Impeller + C++ FFI (Option A) with Direct libvlc C ABI`
-- **Latest Handoff Log:** `logs/008-thick-seek-bar.md`
-- **Overall Completion:** `10 / 28 Tasks (35.7%)`
+- **Latest Handoff Log:** `logs/009-osd-notification-layer.md`
+- **Overall Completion:** `11 / 28 Tasks (39.3%)`
 - **Last Updated:** `2026-10-18`
 
 ---
@@ -20,11 +20,11 @@
 | **Native `libVLC` Core Bridge** | `native_core/include/vlc/`, `native_core/src/vlc_bridge.cpp`, `lib/src/controller/` | Complete (Controls, Tracks, EQ Verified) | `logs/002-player-controller-ffi.md` |
 | **Hardware Video Surfaces** | `native_core/include/hardware_surface.h`, `hardware_surface_metal.mm` (Metal), `hardware_surface_d3d11.cpp`, `hardware_surface_jni.cpp` | Complete (Metal 4K Zero-Copy Verified) | `logs/003-hardware-video-surfaces.md` |
 | **Design Tokens & Theme Engine** | `lib/theme/` (`vlc_colors.dart`, `vlc_geometry.dart`, `vlc_typography.dart`, `vlc_icons.dart`, `vlc_theme.dart`) | Complete (Tokens, Accent Engine, Dual Icons) | `logs/004-theme-tokens-engine.md` |
-| **Shell, TopBar & OSD Layer** | `lib/ui/shell/` (`app_shell.dart`, `top_player_bar.dart`, `OSDNotificationLayer`, `MiniPlayerOverlay`) | In Progress (`AppShell` & `TopPlayerBar` Complete) | `logs/006-top-player-bar.md` |
+| **Shell, TopBar & OSD Layer** | `lib/ui/shell/` (`app_shell.dart`, `top_player_bar.dart`, `osd_notification_layer.dart`) | Complete (`AppShell`, `TopPlayerBar`, `OSD Layer`) | `logs/009-osd-notification-layer.md` |
 | **Bottom Controls & Thick SeekBar** | `lib/ui/controls/` (`bottom_transport_row.dart`, `volume_control.dart`, `thick_seek_bar.dart`) | Complete (Transport, Overdrive Volume, ThickSeekBar) | `logs/008-thick-seek-bar.md` |
-| **Popups & 4-Tab Inspector** | `lib/ui/popups/`, `lib/ui/sidebar/` (`InspectorSidebar`: Sub/Audio/Video/Play)[span_14](start_span)[span_14](end_span) | Not Started | — |
-| **Media Library, Music & IPTV** | `lib/ui/library/` (`medialibrary` SQLite, `CompactLibraryDrawer`, `M3UStreamsView`)[span_15](start_span)[span_15](end_span) | Not Started | — |
-| **Settings, Hotkeys & Customizer** | `lib/ui/settings/` (`UnifiedSettingsModal`, `HotkeysModal`, `DragDropCustomizer`)[span_16](start_span)[span_16](end_span) | Not Started | — |
+| **Popups & 4-Tab Inspector** | `lib/ui/popups/`, `lib/ui/sidebar/` (`InspectorSidebar`: Sub/Audio/Video/Play) | In Progress (Starting Phase 3) | — |
+| **Media Library, Music & IPTV** | `lib/ui/library/` (`medialibrary` SQLite, `CompactLibraryDrawer`, `M3UStreamsView`) | Not Started | — |
+| **Settings, Hotkeys & Customizer** | `lib/ui/settings/` (`UnifiedSettingsModal`, `HotkeysModal`, `DragDropCustomizer`) | Not Started | — |
 
 ---
 
@@ -37,13 +37,13 @@
 - [x] **1.4** Bind zero-copy GPU hardware video surfaces (`Metal CVPixelBuffer` on Apple, `D3D11 SwapChain` on Windows, `SurfaceTexture` on Android) so UI overlays render cleanly over 4K video.
 - [x] **1.5** Run `/ponytail-review` on Phase 1 FFI memory safety and write `logs/001-phase1-complete.md`.
 
-### Phase 2: Design System, `AppShell`, Top/Bottom Bars & Thick Seek Bar
+### Phase 2: Design System, `AppShell`, Top/Bottom Bars & Thick Seek Bar (COMPLETE)
 - [x] **2.1** Extract Figma tokens (`TKMz3UlzGRDOxFHHXq4Bln`) into `theme/`: Dark/Light palettes, `#FF8800` accent color engine, rectangular `4dp–8dp` geometry, and Dual Icon sets (Two-Tone vs. Monochrome).
 - [x] **2.2** Build `AppShell` with desktop hover auto-hide (`1.8s`), mobile tap auto-hide (`3.0s`), and `Hide UI Completely` (`Ctrl+H`) lock mode.
 - [x] **2.3** Build `TopPlayerBar` with `UnifiedMenuButton`, `FolderBreadcrumbTrigger` (`[Show Folder] › [Title]`), PiP toggle, and Fullscreen controls.
 - [x] **2.4** Build `BottomTransportRow` (left-aligned Play/Pause/Prev/Next + right-aligned utility cluster) and `FullConeVolumeControl` (0–200% striped cone slider).
 - [x] **2.5** Build `ThickSeekBar` (`10dp` -> `16dp` on hover) wired to `libvlc_media_thumbnail_request_by_time` hover frame previews, chapter ticks, and `WaveformSeekOverlay`.
-- [ ] **2.6** Build `OSDNotificationLayer` with **Shortcut-Aware Top-Right Pill** (`Action [Key]`) and **Bottom-Center 5s `"Continue Watching"` Prompt**[span_26](start_span)[span_26](end_span).
+- [x] **2.6** Build `OSDNotificationLayer` with **Shortcut-Aware Top-Right Pill** (`Action [Key]`) and **Bottom-Center 5s `"Continue Watching"` Prompt**.
 
 ### Phase 3: Quick Popups, Batch Subtitle Auto-Matcher & 4-Tab Inspector Sidebar
 - [ ] **3.1** Build `SubtitleQuickPopup` (`libvlc_video_get_spu_description`) and `AddSubtitlesModal` with **This File / This Folder / This Playlist** scopes, OpenSubtitles REST API search, and batch season episode fuzzy-matcher[span_27](start_span)[span_27](end_span).

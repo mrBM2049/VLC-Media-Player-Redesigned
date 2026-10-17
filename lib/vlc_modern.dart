@@ -13,6 +13,7 @@ export 'theme/vlc_theme.dart';
 // UI Shell (Phase 2)
 export 'ui/shell/app_shell.dart';
 export 'ui/shell/top_player_bar.dart';
+export 'ui/shell/osd_notification_layer.dart';
 
 // UI Controls (Phase 2)
 export 'ui/controls/volume_control.dart';
