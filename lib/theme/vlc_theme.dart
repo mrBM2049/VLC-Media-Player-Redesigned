@@ -195,3 +195,4 @@ class VlcThemeController extends ChangeNotifier {
     setAccentColor(preset.color);
   }
 }
+

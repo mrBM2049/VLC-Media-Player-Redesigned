@@ -105,3 +105,4 @@ class VlcGeometry {
   /// Subtle 1.0dp stroke for container borders and panel dividers
   static const double strokeWidthBorder = 1.0;
 }
+

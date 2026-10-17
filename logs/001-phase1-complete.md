@@ -98,3 +98,4 @@ Phase 1 is 100% complete. We have successfully scaffolded and verified the entir
   - Enforce Juxtopposed rectangular geometry ($4\text{dp}–8\text{dp}$ border radius); never use round pill buttons for transport controls.
   - Implement Dual Iconography: Two-Tone (gray + orange accent) for menu/drawer headers; $1.5\text{dp}$ monochrome outline for interactive toolbar buttons.
   - Maintain the signature `#FF8800` cone orange accent color across dark glass surfaces (`#0D0D0F` / `#16161A`).
+

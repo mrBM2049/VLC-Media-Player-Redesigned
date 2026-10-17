@@ -53,3 +53,4 @@ Extracted and codified the full design system tokens from Juxtopposed Figma (`TK
   3. `docs/Progress.md`
 - **Known Edge Cases / Blockers:**
   - When auto-hiding the cursor (`SystemMouseCursors.none`) on desktop, ensure moving the cursor immediately cancels the timer and reveals both the cursor and the UI bars with a smooth 200ms ease-out curve.
+

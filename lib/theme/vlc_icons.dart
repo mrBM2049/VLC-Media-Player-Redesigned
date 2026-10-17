@@ -548,3 +548,4 @@ class _VlcTwoTonePainter extends CustomPainter {
         oldDelegate.strokeWidth != strokeWidth;
   }
 }
+
