@@ -6,10 +6,10 @@
 
 ## Current Status Summary
 - **Current Active Phase:** `Phase 2 — Design System, AppShell, Top/Bottom Bars & Thick Seek Bar`
-- **Current Next Task:** `2.4 Build BottomTransportRow (left-aligned Play/Pause/Prev/Next + right-aligned utility cluster) and FullConeVolumeControl (0–200% striped cone slider)`
+- **Current Next Task:** `2.5 Build ThickSeekBar (10dp -> 16dp on hover) wired to libvlc_media_thumbnail_request_by_time hover frame previews, chapter ticks, and WaveformSeekOverlay`
 - **Chosen UI / Native Stack:** `Flutter Impeller + C++ FFI (Option A) with Direct libvlc C ABI`
-- **Latest Handoff Log:** `logs/006-top-player-bar.md`
-- **Overall Completion:** `8 / 28 Tasks (28.6%)`
+- **Latest Handoff Log:** `logs/007-bottom-transport-volume.md`
+- **Overall Completion:** `9 / 28 Tasks (32.1%)`
 - **Last Updated:** `2026-10-18`
 
 ---
@@ -21,7 +21,7 @@
 | **Hardware Video Surfaces** | `native_core/include/hardware_surface.h`, `hardware_surface_metal.mm` (Metal), `hardware_surface_d3d11.cpp`, `hardware_surface_jni.cpp` | Complete (Metal 4K Zero-Copy Verified) | `logs/003-hardware-video-surfaces.md` |
 | **Design Tokens & Theme Engine** | `lib/theme/` (`vlc_colors.dart`, `vlc_geometry.dart`, `vlc_typography.dart`, `vlc_icons.dart`, `vlc_theme.dart`) | Complete (Tokens, Accent Engine, Dual Icons) | `logs/004-theme-tokens-engine.md` |
 | **Shell, TopBar & OSD Layer** | `lib/ui/shell/` (`app_shell.dart`, `top_player_bar.dart`, `OSDNotificationLayer`, `MiniPlayerOverlay`) | In Progress (`AppShell` & `TopPlayerBar` Complete) | `logs/006-top-player-bar.md` |
-| **Bottom Controls & Thick SeekBar** | `lib/ui/controls/` (`BottomTransportRow`, `ThickSeekBar`, `FullConeVolumeControl`)[span_13](start_span)[span_13](end_span) | Not Started | — |
+| **Bottom Controls & Thick SeekBar** | `lib/ui/controls/` (`bottom_transport_row.dart`, `volume_control.dart`, `ThickSeekBar`) | In Progress (`BottomTransportRow` & `FullConeVolumeControl` Complete) | `logs/007-bottom-transport-volume.md` |
 | **Popups & 4-Tab Inspector** | `lib/ui/popups/`, `lib/ui/sidebar/` (`InspectorSidebar`: Sub/Audio/Video/Play)[span_14](start_span)[span_14](end_span) | Not Started | — |
 | **Media Library, Music & IPTV** | `lib/ui/library/` (`medialibrary` SQLite, `CompactLibraryDrawer`, `M3UStreamsView`)[span_15](start_span)[span_15](end_span) | Not Started | — |
 | **Settings, Hotkeys & Customizer** | `lib/ui/settings/` (`UnifiedSettingsModal`, `HotkeysModal`, `DragDropCustomizer`)[span_16](start_span)[span_16](end_span) | Not Started | — |
@@ -41,7 +41,7 @@
 - [x] **2.1** Extract Figma tokens (`TKMz3UlzGRDOxFHHXq4Bln`) into `theme/`: Dark/Light palettes, `#FF8800` accent color engine, rectangular `4dp–8dp` geometry, and Dual Icon sets (Two-Tone vs. Monochrome).
 - [x] **2.2** Build `AppShell` with desktop hover auto-hide (`1.8s`), mobile tap auto-hide (`3.0s`), and `Hide UI Completely` (`Ctrl+H`) lock mode.
 - [x] **2.3** Build `TopPlayerBar` with `UnifiedMenuButton`, `FolderBreadcrumbTrigger` (`[Show Folder] › [Title]`), PiP toggle, and Fullscreen controls.
-- [ ] **2.4** Build `BottomTransportRow` (left-aligned Play/Pause/Prev/Next + right-aligned utility cluster) and `FullConeVolumeControl` (0–200% striped cone slider)[span_24](start_span)[span_24](end_span).
+- [x] **2.4** Build `BottomTransportRow` (left-aligned Play/Pause/Prev/Next + right-aligned utility cluster) and `FullConeVolumeControl` (0–200% striped cone slider).
 - [ ] **2.5** Build `ThickSeekBar` (`10dp` -> `16dp` on hover) wired to `libvlc_media_thumbnail_request_by_time` hover frame previews, chapter ticks, and `WaveformSeekOverlay`[span_25](start_span)[span_25](end_span).
 - [ ] **2.6** Build `OSDNotificationLayer` with **Shortcut-Aware Top-Right Pill** (`Action [Key]`) and **Bottom-Center 5s `"Continue Watching"` Prompt**[span_26](start_span)[span_26](end_span).
 

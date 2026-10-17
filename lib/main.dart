@@ -23,6 +23,14 @@ class _VlcModernAppState extends State<VlcModernApp> {
   String _fullPath = '/Users/Movies/Demo Media/Big Buck Bunny (4K Remux).mkv';
   bool _isFullscreen = false;
   bool _isPipActive = false;
+  bool _isPlaying = false;
+  Duration _position = const Duration(minutes: 14, seconds: 28);
+  Duration _duration = const Duration(hours: 2, minutes: 15, seconds: 40);
+  int _volume = 100;
+  bool _isMuted = false;
+  double _playbackRate = 1.0;
+  VlcRepeatMode _repeatMode = VlcRepeatMode.off;
+  bool _isShuffle = false;
 
   @override
   void initState() {
@@ -154,6 +162,78 @@ class _VlcModernAppState extends State<VlcModernApp> {
               ),
             ),
 
+            // Bottom Transport Row & Cone Volume Control
+            bottomControls: BottomTransportRow(
+              isPlaying: _isPlaying,
+              position: _position,
+              duration: _duration,
+              volume: _volume,
+              isMuted: _isMuted,
+              playbackRate: _playbackRate,
+              repeatMode: _repeatMode,
+              isShuffle: _isShuffle,
+              onPlayPause: () {
+                setState(() => _isPlaying = !_isPlaying);
+              },
+              onPrevious: () {
+                setState(() => _position = Duration.zero);
+              },
+              onNext: () {
+                setState(() => _position = _duration);
+              },
+              onStop: () {
+                setState(() {
+                  _isPlaying = false;
+                  _position = Duration.zero;
+                });
+              },
+              onVolumeChanged: (vol) {
+                setState(() => _volume = vol);
+                _playerController.setVolume(vol);
+              },
+              onToggleMute: () {
+                setState(() => _isMuted = !_isMuted);
+                _playerController.toggleMute();
+              },
+              onRateChanged: (rate) {
+                setState(() => _playbackRate = rate);
+                _playerController.setRate(rate);
+              },
+              onSubtitlesTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('Subtitles Selector (Track 1: English [Default])'),
+                    duration: const Duration(seconds: 2),
+                    backgroundColor: colors.surfaceVariant,
+                  ),
+                );
+              },
+              onAudioTrackTap: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('Audio Track Selector (Track 1: 5.1 Surround DTS-HD)'),
+                    duration: const Duration(seconds: 2),
+                    backgroundColor: colors.surfaceVariant,
+                  ),
+                );
+              },
+              onEqualizerTap: () {
+                _shellController.toggleDrawer(1); // Open Tab 1: EQ
+              },
+              onRepeatToggle: () {
+                setState(() {
+                  _repeatMode = switch (_repeatMode) {
+                    VlcRepeatMode.off => VlcRepeatMode.all,
+                    VlcRepeatMode.all => VlcRepeatMode.one,
+                    VlcRepeatMode.one => VlcRepeatMode.off,
+                  };
+                });
+              },
+              onShuffleToggle: () {
+                setState(() => _isShuffle = !_isShuffle);
+              },
+            ),
+
             // 4-Tab Inspector Drawer preview
             rightDrawer: Container(
               color: colors.surface,
@@ -243,3 +323,4 @@ class _VlcBigConePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _VlcBigConePainter oldDelegate) => oldDelegate.coneColor != coneColor;
 }
+
