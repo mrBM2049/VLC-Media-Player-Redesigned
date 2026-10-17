@@ -112,5 +112,33 @@ void main() {
       expect(decoration.borderRadius, VlcGeometry.borderRadiusMedium);
       expect(decoration.borderRadius, BorderRadius.circular(6.0));
     });
+
+    testWidgets('Renders theme switch button and cycles through Dark -> OLED -> Light', (tester) async {
+      VlcThemeMode? selectedMode;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: VlcThemeData.dark().toThemeData(),
+          home: Scaffold(
+            body: TopPlayerBar(
+              mediaTitle: 'Theme Test.mp4',
+              themeMode: VlcThemeMode.dark,
+              onThemeModeChanged: (mode) {
+                selectedMode = mode;
+              },
+            ),
+          ),
+        ),
+      );
+
+      final buttons = find.byType(VlcTopBarButton);
+      // Buttons: UnifiedMenuButton (0), ThemeSwitch (1)
+      expect(buttons, findsNWidgets(2));
+
+      // Tap Theme Switch button while in Dark mode -> should switch to OLED
+      await tester.tap(buttons.at(1));
+      expect(selectedMode, VlcThemeMode.oled);
+    });
   });
 }
+

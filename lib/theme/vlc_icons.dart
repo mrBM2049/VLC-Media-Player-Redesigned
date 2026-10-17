@@ -53,6 +53,11 @@ enum VlcIconGlyph {
   chevronLeft,
   moreVertical,
 
+  // Theme Toggles
+  themeLight,
+  themeDark,
+  themeOled,
+
   // Dual-Tone Inspector Tabs
   tabSubtitles,
   tabAudio,
@@ -379,6 +384,54 @@ class _VlcMonochromePainter extends CustomPainter {
 
       case VlcIconGlyph.settings:
         _drawGear(canvas, size, paintStroke);
+        break;
+
+      case VlcIconGlyph.themeLight:
+        // Sun icon: center circle + radial ray lines
+        final center = Offset(w * 0.5, h * 0.5);
+        canvas.drawCircle(center, w * 0.20, paintStroke);
+        final rayLen = w * 0.10;
+        final rInner = w * 0.28;
+        final rOuter = rInner + rayLen;
+        for (int i = 0; i < 8; i++) {
+          final angle = i * math.pi / 4;
+          final p1 = Offset(center.dx + rInner * math.cos(angle), center.dy + rInner * math.sin(angle));
+          final p2 = Offset(center.dx + rOuter * math.cos(angle), center.dy + rOuter * math.sin(angle));
+          canvas.drawLine(p1, p2, paintStroke);
+        }
+        break;
+
+      case VlcIconGlyph.themeDark:
+        // Moon crescent icon
+        final moonPath = Path()
+          ..moveTo(w * 0.50, h * 0.18)
+          ..arcToPoint(
+            Offset(w * 0.50, h * 0.82),
+            radius: Radius.circular(w * 0.32),
+            clockwise: true,
+          )
+          ..arcToPoint(
+            Offset(w * 0.50, h * 0.18),
+            radius: Radius.circular(w * 0.24),
+            clockwise: false,
+          )
+          ..close();
+        canvas.drawPath(moonPath, paintStroke);
+        break;
+
+      case VlcIconGlyph.themeOled:
+        // Eclipse / OLED badge: circle with half-solid fill
+        final oledCenter = Offset(w * 0.5, h * 0.5);
+        final oledRadius = w * 0.30;
+        canvas.drawCircle(oledCenter, oledRadius, paintStroke);
+        final halfFill = Path()
+          ..addArc(
+            Rect.fromCircle(center: oledCenter, radius: oledRadius),
+            -math.pi / 2,
+            math.pi,
+          )
+          ..close();
+        canvas.drawPath(halfFill, paintFill);
         break;
 
       default:

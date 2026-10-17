@@ -46,3 +46,4 @@ Architected and implemented `TopPlayerBar`, `UnifiedMenuButton`, `FolderBreadcru
   3. `docs/Progress.md`
 - **Known Edge Cases / Blockers:**
   - Cone volume slider past 100% (up to 200%) should feature subtle diagonal stripe or gradient shift to indicate software preamp amplification.
+

@@ -96,10 +96,12 @@ class _VlcTopBarButtonState extends State<VlcTopBarButton> {
 /// Displays the signature traffic cone icon and opens the consolidated modern menu.
 class UnifiedMenuButton extends StatelessWidget {
   final VoidCallback? onMenuAction;
+  final ValueChanged<VlcThemeMode>? onThemeModeChanged;
 
   const UnifiedMenuButton({
     super.key,
     this.onMenuAction,
+    this.onThemeModeChanged,
   });
 
   @override
@@ -114,6 +116,13 @@ class UnifiedMenuButton extends StatelessWidget {
       color: colors.surface,
       elevation: 12,
       onSelected: (value) {
+        if (value == 'theme_dark' && onThemeModeChanged != null) {
+          onThemeModeChanged!(VlcThemeMode.dark);
+        } else if (value == 'theme_oled' && onThemeModeChanged != null) {
+          onThemeModeChanged!(VlcThemeMode.oled);
+        } else if (value == 'theme_light' && onThemeModeChanged != null) {
+          onThemeModeChanged!(VlcThemeMode.light);
+        }
         if (onMenuAction != null) {
           onMenuAction!();
         }
@@ -132,6 +141,11 @@ class UnifiedMenuButton extends StatelessWidget {
         _buildMenuItem('audio_tracks', 'Audio Track...', '', colors, vlcTheme),
         _buildMenuItem('equalizer', 'Equalizer (10-Band)...', '', colors, vlcTheme),
         _buildMenuItem('subtitles', 'Subtitles / Track...', 'V', colors, vlcTheme),
+        const PopupMenuDivider(),
+        _buildMenuHeader('THEME & APPEARANCE', colors, vlcTheme),
+        _buildMenuItem('theme_dark', 'Dark Mode', '', colors, vlcTheme),
+        _buildMenuItem('theme_oled', 'OLED Pure Black', '', colors, vlcTheme),
+        _buildMenuItem('theme_light', 'Light Mode', '', colors, vlcTheme),
         const PopupMenuDivider(),
         _buildMenuHeader('TOOLS & VIEW', colors, vlcTheme),
         _buildMenuItem('hide_ui', 'Hide UI Completely', 'Ctrl+H', colors, vlcTheme),
@@ -336,10 +350,12 @@ class TopPlayerBar extends StatelessWidget {
   final bool isFullscreen;
   final bool isPipActive;
   final bool isDrawerOpen;
+  final VlcThemeMode? themeMode;
   final VoidCallback? onBreadcrumbTap;
   final VoidCallback? onPipToggle;
   final VoidCallback? onFullscreenToggle;
   final VoidCallback? onInspectorToggle;
+  final ValueChanged<VlcThemeMode>? onThemeModeChanged;
   final double leftSafeAreaInset;
 
   const TopPlayerBar({
@@ -350,10 +366,12 @@ class TopPlayerBar extends StatelessWidget {
     this.isFullscreen = false,
     this.isPipActive = false,
     this.isDrawerOpen = false,
+    this.themeMode,
     this.onBreadcrumbTap,
     this.onPipToggle,
     this.onFullscreenToggle,
     this.onInspectorToggle,
+    this.onThemeModeChanged,
     this.leftSafeAreaInset = 0.0,
   });
 
@@ -361,6 +379,7 @@ class TopPlayerBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final vlcTheme = context.vlcTheme;
     final colors = vlcTheme.colors;
+    final currentMode = themeMode ?? vlcTheme.mode;
 
     return Container(
       height: VlcGeometry.topPlayerBarHeight,
@@ -374,7 +393,7 @@ class TopPlayerBar extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // 1. Unified VLC Menu Button
-          const UnifiedMenuButton(),
+          UnifiedMenuButton(onThemeModeChanged: onThemeModeChanged),
           const SizedBox(width: 8.0),
 
           // 2. Folder Breadcrumb Trigger ([Folder] › [Title])
@@ -396,6 +415,32 @@ class TopPlayerBar extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Theme mode toggle (Dark -> OLED -> Light -> Dark)
+              if (onThemeModeChanged != null)
+                VlcTopBarButton(
+                  tooltip: _getThemeTooltip(currentMode),
+                  onPressed: () {
+                    final next = switch (currentMode) {
+                      VlcThemeMode.dark => VlcThemeMode.oled,
+                      VlcThemeMode.oled => VlcThemeMode.light,
+                      VlcThemeMode.light => VlcThemeMode.dark,
+                    };
+                    onThemeModeChanged!(next);
+                  },
+                  child: VlcMonochromeIcon(
+                    switch (currentMode) {
+                      VlcThemeMode.dark => VlcIconGlyph.themeDark,
+                      VlcThemeMode.oled => VlcIconGlyph.themeOled,
+                      VlcThemeMode.light => VlcIconGlyph.themeLight,
+                    },
+                    size: 18.0,
+                    color: colors.textPrimary,
+                  ),
+                ),
+
+              if (onThemeModeChanged != null)
+                const SizedBox(width: 6.0),
+
               // Picture-in-Picture toggle
               if (onPipToggle != null)
                 VlcTopBarButton(
@@ -443,6 +488,14 @@ class TopPlayerBar extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _getThemeTooltip(VlcThemeMode mode) {
+    return switch (mode) {
+      VlcThemeMode.dark => 'Theme: Dark (Click for OLED Pure Black)',
+      VlcThemeMode.oled => 'Theme: OLED (Click for Light Mode)',
+      VlcThemeMode.light => 'Theme: Light (Click for Dark Mode)',
+    };
   }
 }
 
@@ -511,3 +564,4 @@ class _TrafficConePainter extends CustomPainter {
     return oldDelegate.coneColor != coneColor;
   }
 }
+
