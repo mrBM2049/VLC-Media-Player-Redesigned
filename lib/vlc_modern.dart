@@ -27,4 +27,6 @@ export 'models/queue_models.dart';
 export 'ui/popups/subtitle_quick_popup.dart';
 export 'ui/popups/add_subtitles_modal.dart';
 export 'ui/popups/audio_quick_popup.dart';
+export 'ui/popups/open_media_modal.dart';
 export 'ui/drawer/queue_drawer.dart';
+export 'services/file_picker_service.dart';

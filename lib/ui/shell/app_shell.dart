@@ -214,6 +214,7 @@ class AppShell extends StatefulWidget {
   final Widget? centerPrompt;
   final AppShellController? shellController;
   final VoidCallback? onFullscreenToggle;
+  final VoidCallback? onOpenFile;
   final bool isFullscreen;
 
   const AppShell({
@@ -228,6 +229,7 @@ class AppShell extends StatefulWidget {
     this.centerPrompt,
     this.shellController,
     this.onFullscreenToggle,
+    this.onOpenFile,
     this.isFullscreen = false,
   });
 
@@ -311,6 +313,14 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
     if (isMetaOrControl && event.logicalKey == LogicalKeyboardKey.keyH) {
       _controller.toggleLockHide();
       return KeyEventResult.handled;
+    }
+
+    // Ctrl+O or Cmd+O: Open File
+    if (isMetaOrControl && event.logicalKey == LogicalKeyboardKey.keyO) {
+      if (widget.onOpenFile != null) {
+        widget.onOpenFile!();
+        return KeyEventResult.handled;
+      }
     }
 
     // Space: Toggle Play/Pause

@@ -1,10 +1,12 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:path/path.dart' as p;
 import 'models/subtitle_models.dart';
 import 'models/audio_models.dart';
 import 'ui/popups/subtitle_quick_popup.dart';
 import 'ui/popups/add_subtitles_modal.dart';
 import 'ui/popups/audio_quick_popup.dart';
+import 'ui/popups/open_media_modal.dart';
 import 'vlc_modern.dart';
 
 void main() {
@@ -172,6 +174,58 @@ class _VlcModernAppState extends State<VlcModernApp> {
     });
   }
 
+  void _loadAndPlayMedia(String mrl) {
+    final fileName = p.basename(mrl);
+    final folderName = p.basename(p.dirname(mrl));
+
+    setState(() {
+      _fullPath = mrl;
+      _mediaTitle = fileName.isNotEmpty ? fileName : mrl;
+      _folderName = folderName.isNotEmpty ? folderName : 'Media';
+      _position = Duration.zero;
+      _isPlaying = true;
+    });
+
+    _playerController.open(mrl);
+    _playerController.play();
+
+    // Add or activate in queue
+    final existingIdx = _queueController.items.indexWhere((it) => it.mrl == mrl);
+    if (existingIdx != -1) {
+      _queueController.playIndex(existingIdx);
+    } else {
+      _queueController.addItem(
+        QueueItem(
+          id: 'q_${DateTime.now().millisecondsSinceEpoch}',
+          mrl: mrl,
+          title: _mediaTitle,
+          artist: _folderName,
+          duration: const Duration(minutes: 30),
+          isPlaying: true,
+        ),
+      );
+    }
+
+    _osdController.showPill(
+      action: 'Playing: $_mediaTitle',
+      shortcutKey: 'Ctrl+O',
+      icon: VlcIconGlyph.play,
+    );
+  }
+
+  void _showOpenMediaModal(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierColor: Colors.black54,
+      builder: (dialogCtx) => OpenMediaModal(
+        onOpenMedia: (mrl) {
+          _loadAndPlayMedia(mrl);
+        },
+        onClose: () => Navigator.of(dialogCtx).pop(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentVlcTheme = _themeController.currentTheme;
@@ -189,6 +243,7 @@ class _VlcModernAppState extends State<VlcModernApp> {
             shellController: _shellController,
             isFullscreen: _isFullscreen,
             onFullscreenToggle: _toggleFullscreen,
+            onOpenFile: () => _showOpenMediaModal(context),
             osdLayer: OSDNotificationLayer(controller: _osdController),
 
             // Top Player Bar with Theme Switch, Breadcrumbs & Actions
@@ -200,6 +255,8 @@ class _VlcModernAppState extends State<VlcModernApp> {
               isPipActive: _isPipActive,
               isDrawerOpen: _shellController.isDrawerOpen,
               themeMode: _themeController.mode,
+              onOpenFile: () => _showOpenMediaModal(context),
+              onOpenStream: () => _showOpenMediaModal(context),
               onThemeModeChanged: (mode) {
                 _themeController.setThemeMode(mode);
                 _osdController.showPill(
@@ -224,7 +281,7 @@ class _VlcModernAppState extends State<VlcModernApp> {
               },
             ),
 
-            // Video Surface canvas (displays cone emblem when idle)
+            // Video Surface canvas (displays cone emblem and Open Media CTA when idle)
             videoSurface: Container(
               color: colors.background,
               child: Center(
@@ -252,6 +309,34 @@ class _VlcModernAppState extends State<VlcModernApp> {
                       ),
                     ),
                     const SizedBox(height: 20),
+                    // Prominent Open Media CTA Button
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colors.accent.primary,
+                        foregroundColor: Colors.white,
+                        elevation: 4,
+                        shape: VlcGeometry.buttonShape,
+                        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+                      ),
+                      onPressed: () => _showOpenMediaModal(context),
+                      icon: const Icon(Icons.folder_open, size: 20, color: Colors.white),
+                      label: Text(
+                        'Open Media [Ctrl+O / ⌘O]',
+                        style: currentVlcTheme.typography.bodyMedium.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Select a video/audio file, enter a stream URL, or pick demo media',
+                      style: currentVlcTheme.typography.labelSmall.copyWith(
+                        color: colors.textTertiary,
+                        fontSize: 11,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
                     // Current Theme Badge
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -519,11 +604,7 @@ class _VlcModernAppState extends State<VlcModernApp> {
             );
           },
           onAddMedia: () {
-            _osdController.showPill(
-              action: 'Add Media to Queue',
-              shortcutKey: 'Ctrl+O',
-              icon: VlcIconGlyph.folder,
-            );
+            _showOpenMediaModal(context);
           },
         ),
 

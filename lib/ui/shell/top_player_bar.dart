@@ -95,11 +95,15 @@ class _VlcTopBarButtonState extends State<VlcTopBarButton> {
 /// Unified VLC Application Menu Button
 /// Displays the signature traffic cone icon and opens the consolidated modern menu.
 class UnifiedMenuButton extends StatelessWidget {
+  final VoidCallback? onOpenFile;
+  final VoidCallback? onOpenStream;
   final VoidCallback? onMenuAction;
   final ValueChanged<VlcThemeMode>? onThemeModeChanged;
 
   const UnifiedMenuButton({
     super.key,
+    this.onOpenFile,
+    this.onOpenStream,
     this.onMenuAction,
     this.onThemeModeChanged,
   });
@@ -116,7 +120,11 @@ class UnifiedMenuButton extends StatelessWidget {
       color: colors.surface,
       elevation: 12,
       onSelected: (value) {
-        if (value == 'theme_dark' && onThemeModeChanged != null) {
+        if (value == 'open_file' && onOpenFile != null) {
+          onOpenFile!();
+        } else if (value == 'open_stream' && onOpenStream != null) {
+          onOpenStream!();
+        } else if (value == 'theme_dark' && onThemeModeChanged != null) {
           onThemeModeChanged!(VlcThemeMode.dark);
         } else if (value == 'theme_oled' && onThemeModeChanged != null) {
           onThemeModeChanged!(VlcThemeMode.oled);
@@ -351,6 +359,8 @@ class TopPlayerBar extends StatelessWidget {
   final bool isPipActive;
   final bool isDrawerOpen;
   final VlcThemeMode? themeMode;
+  final VoidCallback? onOpenFile;
+  final VoidCallback? onOpenStream;
   final VoidCallback? onBreadcrumbTap;
   final VoidCallback? onPipToggle;
   final VoidCallback? onFullscreenToggle;
@@ -367,6 +377,8 @@ class TopPlayerBar extends StatelessWidget {
     this.isPipActive = false,
     this.isDrawerOpen = false,
     this.themeMode,
+    this.onOpenFile,
+    this.onOpenStream,
     this.onBreadcrumbTap,
     this.onPipToggle,
     this.onFullscreenToggle,
@@ -393,7 +405,11 @@ class TopPlayerBar extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           // 1. Unified VLC Menu Button
-          UnifiedMenuButton(onThemeModeChanged: onThemeModeChanged),
+          UnifiedMenuButton(
+            onOpenFile: onOpenFile,
+            onOpenStream: onOpenStream,
+            onThemeModeChanged: onThemeModeChanged,
+          ),
           const SizedBox(width: 8.0),
 
           // 2. Folder Breadcrumb Trigger ([Folder] › [Title])
