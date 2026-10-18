@@ -7,6 +7,7 @@ import '../../theme/vlc_theme.dart';
 import '../drawer/compact_library_drawer.dart';
 import 'home_view.dart';
 import 'music_view.dart';
+import 'network_streams_view.dart';
 import 'videos_view.dart';
 
 /// Navigation sections available in the Full Library sidebar.
@@ -216,6 +217,29 @@ class _FullLibraryViewState extends State<FullLibraryView> {
                                 onPlayAll: widget.onPlayAll,
                                 onEnqueueAll: widget.onEnqueueAll,
                                 onAddFolder: widget.onAddFolder,
+                              )
+                        : _activeSection == LibrarySection.streams && _searchQuery.isEmpty && _selectedFolderPath == null
+                            ? NetworkStreamsView(
+                                onPlayStream: (stream) {
+                                  widget.onPlayItem?.call(MediaItem(
+                                    id: stream.id.hashCode,
+                                    mrl: stream.streamUrl,
+                                    title: stream.name,
+                                    folderPath: stream.group,
+                                    mediaType: MediaType.stream,
+                                    dateAdded: DateTime.now(),
+                                  ));
+                                },
+                                onAddToQueue: (stream) {
+                                  widget.onAddToQueue?.call(MediaItem(
+                                    id: stream.id.hashCode,
+                                    mrl: stream.streamUrl,
+                                    title: stream.name,
+                                    folderPath: stream.group,
+                                    mediaType: MediaType.stream,
+                                    dateAdded: DateTime.now(),
+                                  ));
+                                },
                               )
                             : Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,

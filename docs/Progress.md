@@ -61,7 +61,7 @@
 - [x] **4.3** Build `FullLibraryView` with draggable bottom-right `MiniPlayerOverlay`, breadcrumb address bar, Grid/List/Details view switcher, and Pinned sidebar items.
 - [x] **4.4** Build `HomeView` (replaces empty cone screen with Continue Watching, Recent Files, Playlists, Streams) and `VideosView`.
 - [x] **4.5** Build `MusicView` (*Songs, Albums, Artists, Genres*) and `MusicPlayerCanvas` (large cover art, ambient blur, waveform seek bar).
-- [ ] **4.6** Build `NetworkStreamsView` with GitHub/IPTV `.m3u` / `.m3u8` channel list parser and split classic "Open Media" into dedicated single-purpose modals (*Stream, Capture Device, Convert, Cast*).
+- [x] **4.6** Build `NetworkStreamsView` with GitHub/IPTV `.m3u` / `.m3u8` channel list parser and split classic "Open Media" into dedicated single-purpose modals (*Stream, Capture Device, Convert, Cast*).
 
 ### Phase 5: Reimagined Settings, Hotkeys, Drag-and-Drop Customizer & Mobile Polish
 - [ ] **5.1** Build `UnifiedSettingsModal` across all **12 Categories** with **continuous Basic-to-Advanced scroll** (no Simple/All toggle), human-readable dropdowns, and `ⓘ` tooltips on every setting.
