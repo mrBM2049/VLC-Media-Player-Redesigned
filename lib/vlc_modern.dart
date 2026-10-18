@@ -59,3 +59,5 @@ export 'ui/popups/cast_modal.dart';
 // Phase 5 Settings, Hotkeys & Customizer
 export 'services/settings_service.dart';
 export 'ui/settings/unified_settings_modal.dart';
+export 'ui/settings/hotkeys_modal.dart';
+export 'ui/settings/first_launch_onboarding.dart';
