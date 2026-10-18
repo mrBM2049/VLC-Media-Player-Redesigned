@@ -75,6 +75,7 @@ class _VlcModernAppState extends State<VlcModernApp> {
   int _selectedAudioTrack = 1;
   String _selectedAudioDevice = 'built_in';
   Duration _audioDelay = Duration.zero;
+  AudioFilterState _audioFilterState = const AudioFilterState();
 
   final List<VlcAudioTrack> _demoAudioTracks = const [
     VlcAudioTrack(id: 1, name: 'Track 1: English (5.1 DTS-HD MA)', language: 'en', codec: 'DTS 5.1', channels: 6),
@@ -732,6 +733,58 @@ class _VlcModernAppState extends State<VlcModernApp> {
                     );
                   },
                 ),
+              );
+            },
+          ),
+          audioTab: AudioInspectorTab(
+            tracks: _demoAudioTracks,
+            selectedTrackId: _selectedAudioTrack,
+            devices: _demoAudioDevices,
+            selectedDeviceId: _selectedAudioDevice,
+            currentDelay: _audioDelay,
+            filterState: _audioFilterState,
+            onSelectTrack: (id) {
+              setState(() => _selectedAudioTrack = id);
+              _playerController.setAudioTrack(id);
+              _osdController.showPill(
+                action: id == -1 ? 'Audio Muted' : 'Audio Track $id Selected',
+                shortcutKey: 'B',
+                icon: VlcIconGlyph.audioTrack,
+              );
+            },
+            onSelectDevice: (devId) {
+              setState(() => _selectedAudioDevice = devId);
+              _playerController.setAudioDevice(devId);
+              final dev = _demoAudioDevices.firstWhere(
+                (d) => d.id == devId,
+                orElse: () => _demoAudioDevices.first,
+              );
+              _osdController.showPill(
+                action: 'Device: ${dev.name}',
+                shortcutKey: 'Audio',
+                icon: VlcIconGlyph.audioTrack,
+              );
+            },
+            onDelayChanged: (d) {
+              setState(() => _audioDelay = d);
+              _playerController.setAudioDelay(d);
+              _osdController.showPill(
+                action: 'Audio Delay: ${d.inMilliseconds} ms',
+                shortcutKey: 'J/K',
+                icon: VlcIconGlyph.audioTrack,
+              );
+            },
+            onFilterStateChanged: (state) {
+              setState(() => _audioFilterState = state);
+              _playerController.enableEqualizer(state.isEqEnabled);
+              _playerController.setEqualizerPreamp(state.preamp);
+              for (int i = 0; i < state.bands.length; i++) {
+                _playerController.setEqualizerBandAmp(i, state.bands[i]);
+              }
+              _osdController.showPill(
+                action: 'EQ: ${state.activePresetId.replaceAll("_", " ").toUpperCase()}',
+                shortcutKey: 'EQ',
+                icon: VlcIconGlyph.equalizer,
               );
             },
           ),

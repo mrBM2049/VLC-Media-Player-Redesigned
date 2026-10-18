@@ -6,10 +6,10 @@
 
 ## Current Status Summary
 - **Current Active Phase:** `Phase 3 — Quick Popups, Batch Subtitle Auto-Matcher & 4-Tab Inspector Sidebar`
-- **Current Next Task:** `3.6 Implement Tab 2 (AudioInspectorTab) (Audio delay slider, visual Audio Filter Preset cards, expandable 10-band equalizer)`
+- **Current Next Task:** `3.7 Implement Tab 3 (VideoInspectorTab) (Geometry/Crop/Aspect/Rotate/HDR toggles + Video Filter cards)`
 - **Chosen UI / Native Stack:** `Flutter Impeller + C++ FFI (Option A) with Direct libvlc C ABI`
-- **Latest Handoff Log:** `logs/014-subtitles-inspector-tab-and-interactive-timeline.md`
-- **Overall Completion:** `16 / 28 Tasks (57.1%)`
+- **Latest Handoff Log:** `logs/015-audio-inspector-tab-and-equalizer.md`
+- **Overall Completion:** `17 / 28 Tasks (60.7%)`
 - **Last Updated:** `2026-10-18`
 
 ---
@@ -22,7 +22,7 @@
 | **Design Tokens & Theme Engine** | `lib/theme/` (`vlc_colors.dart`, `vlc_geometry.dart`, `vlc_typography.dart`, `vlc_icons.dart`, `vlc_theme.dart`) | Complete (Tokens, Accent Engine, Dual Icons) | `logs/004-theme-tokens-engine.md` |
 | **Shell, TopBar & OSD Layer** | `lib/ui/shell/` (`app_shell.dart`, `top_player_bar.dart`, `osd_notification_layer.dart`) | Complete (`AppShell`, `TopPlayerBar`, `OSD Layer`) | `logs/009-osd-notification-layer.md` |
 | **Bottom Controls & Thick SeekBar** | `lib/ui/controls/` (`bottom_transport_row.dart`, `volume_control.dart`, `thick_seek_bar.dart`, `interactive_subtitle_timeline.dart`) | Complete (Transport, Overdrive Volume, ThickSeekBar, SubtitleTimeline) | `logs/014-subtitles-inspector-tab-and-interactive-timeline.md` |
-| **Popups & 4-Tab Inspector** | `lib/ui/popups/`, `lib/ui/sidebar/` (`inspector_sidebar.dart`, `subtitle_inspector_tab.dart`, `preset_models.dart`) | In Progress (Tasks 3.1–3.5 Complete) | `logs/014-subtitles-inspector-tab-and-interactive-timeline.md` |
+| **Popups & 4-Tab Inspector** | `lib/ui/popups/`, `lib/ui/sidebar/` (`inspector_sidebar.dart`, `subtitle_inspector_tab.dart`, `audio_inspector_tab.dart`, `preset_models.dart`) | In Progress (Tasks 3.1–3.6 Complete) | `logs/015-audio-inspector-tab-and-equalizer.md` |
 | **Media Library, Music & IPTV** | `lib/ui/library/` (`medialibrary` SQLite, `CompactLibraryDrawer`, `M3UStreamsView`) | Not Started | — |
 | **Settings, Hotkeys & Customizer** | `lib/ui/settings/` (`UnifiedSettingsModal`, `HotkeysModal`, `DragDropCustomizer`) | Not Started | — |
 
@@ -51,7 +51,7 @@
 - [x] **3.3** Build `QueueDrawer` (temporary drag-and-drop playback queue, separate from saved Playlists).
 - [x] **3.4** Build `InspectorSidebar` (Right `340dp` drawer on Desktop / Modal Bottom Sheet on Mobile) with **Per-Show Preset Bar**.
 - [x] **3.5** Implement **Tab 1 (`SubtitlesInspectorTab`)** + **`InteractiveSubtitleTimeline`** above the seek bar (drag dialogue block while paused to set `libvlc_video_set_spu_delay`) + Relative/Precise font styling.
-- [ ] **3.6** Implement **Tab 2 (`AudioInspectorTab`)** (Audio delay slider, visual Audio Filter Preset cards with previews, expandable 10-band `libvlc_audio_equalizer_t`).
+- [x] **3.6** Implement **Tab 2 (`AudioInspectorTab`)** (Audio delay slider, visual Audio Filter Preset cards with previews, expandable 10-band `libvlc_audio_equalizer_t`).
 - [ ] **3.7** Implement **Tab 3 (`VideoInspectorTab`)** (Geometry/Crop/Aspect/Rotate/HDR toggles + Video Filter cards with live thumbnail previews).
 - [ ] **3.8** Implement **Tab 4 (`PlaybackInspectorTab`)** (Speed `0.25x–4.0x`, Reverse playback, Sleep Timer, Seekbar overlay toggles, Visual Bookmarks `Ctrl+B` & Chapters list).
 

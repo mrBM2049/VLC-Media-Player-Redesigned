@@ -32,5 +32,6 @@ export 'ui/popups/open_media_modal.dart';
 export 'ui/drawer/queue_drawer.dart';
 export 'ui/sidebar/inspector_sidebar.dart';
 export 'ui/sidebar/subtitle_inspector_tab.dart';
+export 'ui/sidebar/audio_inspector_tab.dart';
 export 'ui/controls/interactive_subtitle_timeline.dart';
 export 'services/file_picker_service.dart';
