@@ -57,7 +57,9 @@ export 'ui/popups/convert_modal.dart';
 export 'ui/popups/cast_modal.dart';
 
 // Phase 5 Settings, Hotkeys & Customizer
+export 'models/toolbar_customizer_models.dart';
 export 'services/settings_service.dart';
 export 'ui/settings/unified_settings_modal.dart';
 export 'ui/settings/hotkeys_modal.dart';
 export 'ui/settings/first_launch_onboarding.dart';
+export 'ui/settings/drag_drop_customizer.dart';
