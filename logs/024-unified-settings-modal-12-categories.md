@@ -82,3 +82,4 @@
 
 ## 5. Next Steps
 - **Task 5.2:** Build standalone searchable `HotkeysModal` and `FirstLaunchOnboarding` (Theme/Accent picker + shortcut cheat-sheet).
+

@@ -710,3 +710,4 @@ class _HotkeysModalState extends State<HotkeysModal> {
     );
   }
 }
+
