@@ -5,6 +5,8 @@ import '../../models/media_library_models.dart';
 import '../../services/media_library_service.dart';
 import '../../theme/vlc_theme.dart';
 import '../drawer/compact_library_drawer.dart';
+import 'home_view.dart';
+import 'videos_view.dart';
 
 /// Navigation sections available in the Full Library sidebar.
 enum LibrarySection {
@@ -53,6 +55,7 @@ class FullLibraryView extends StatefulWidget {
   final ValueChanged<int>? onVolumeChanged;
   final VoidCallback? onToggleMute;
   final VoidCallback? onAddFolder;
+  final LibrarySection initialSection;
 
   const FullLibraryView({
     super.key,
@@ -75,6 +78,7 @@ class FullLibraryView extends StatefulWidget {
     this.onVolumeChanged,
     this.onToggleMute,
     this.onAddFolder,
+    this.initialSection = LibrarySection.home,
   });
 
   @override
@@ -83,7 +87,7 @@ class FullLibraryView extends StatefulWidget {
 
 class _FullLibraryViewState extends State<FullLibraryView> {
   final TextEditingController _searchController = TextEditingController();
-  LibrarySection _activeSection = LibrarySection.videos;
+  late LibrarySection _activeSection;
   LibraryLayoutMode _layoutMode = LibraryLayoutMode.grid;
   CompactLibraryTab _filterTab = CompactLibraryTab.all;
   MediaSortOrder _sortOrder = MediaSortOrder.unwatchedFirst;
@@ -98,6 +102,7 @@ class _FullLibraryViewState extends State<FullLibraryView> {
   @override
   void initState() {
     super.initState();
+    _activeSection = widget.initialSection;
     _searchController.addListener(() {
       final q = _searchController.text.trim();
       if (q != _searchQuery) {
@@ -179,23 +184,46 @@ class _FullLibraryViewState extends State<FullLibraryView> {
 
                   // Main Content Area
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Top Breadcrumb Address Bar & Action Row
-                        _buildAddressBar(context, colors, vlcTheme, items),
+                    child: _activeSection == LibrarySection.home && _searchQuery.isEmpty && _selectedFolderPath == null
+                        ? HomeView(
+                            mediaLibraryService: widget.mediaLibraryService,
+                            onPlayItem: widget.onPlayItem,
+                            onAddToQueue: widget.onAddToQueue,
+                            onAddFolder: widget.onAddFolder,
+                            onNavigateToSection: (sec) {
+                              setState(() {
+                                if (sec == 'videos') _activeSection = LibrarySection.videos;
+                                if (sec == 'music') _activeSection = LibrarySection.music;
+                                if (sec == 'streams') _activeSection = LibrarySection.streams;
+                              });
+                            },
+                          )
+                        : _activeSection == LibrarySection.videos && _searchQuery.isEmpty && _selectedFolderPath == null
+                            ? VideosView(
+                                mediaLibraryService: widget.mediaLibraryService,
+                                onPlayItem: widget.onPlayItem,
+                                onAddToQueue: widget.onAddToQueue,
+                                onPlayAll: widget.onPlayAll,
+                                onEnqueueAll: widget.onEnqueueAll,
+                                onAddFolder: widget.onAddFolder,
+                              )
+                            : Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  // Top Breadcrumb Address Bar & Action Row
+                                  _buildAddressBar(context, colors, vlcTheme, items),
 
-                        // Filter Pills & View Layout Mode Switcher Bar
-                        _buildControlsBar(context, colors, vlcTheme, items),
+                                  // Filter Pills & View Layout Mode Switcher Bar
+                                  _buildControlsBar(context, colors, vlcTheme, items),
 
-                        // Main Media Display (Grid / List / Details)
-                        Expanded(
-                          child: items.isEmpty
-                              ? _buildEmptyState(context, colors, vlcTheme)
-                              : _buildContentArea(context, colors, vlcTheme, items),
-                        ),
-                      ],
-                    ),
+                                  // Main Media Display (Grid / List / Details)
+                                  Expanded(
+                                    child: items.isEmpty
+                                        ? _buildEmptyState(context, colors, vlcTheme)
+                                        : _buildContentArea(context, colors, vlcTheme, items),
+                                  ),
+                                ],
+                              ),
                   ),
                 ],
               ),

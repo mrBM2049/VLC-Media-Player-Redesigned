@@ -45,3 +45,5 @@ export 'models/media_library_models.dart';
 export 'services/media_library_service.dart';
 export 'ui/drawer/compact_library_drawer.dart';
 export 'ui/library/full_library_view.dart';
+export 'ui/library/home_view.dart';
+export 'ui/library/videos_view.dart';

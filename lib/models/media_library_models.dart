@@ -379,3 +379,21 @@ class MediaPlaybackHistoryEntry {
   }
 }
 
+/// Logical grouping of media items representing a user playlist or smart collection.
+class MediaPlaylistGroup {
+  final String id;
+  final String title;
+  final int itemCount;
+  final List<MediaItem> items;
+  final String iconGlyph;
+
+  const MediaPlaylistGroup({
+    required this.id,
+    required this.title,
+    required this.itemCount,
+    this.items = const [],
+    this.iconGlyph = 'playlist',
+  });
+}
+
+

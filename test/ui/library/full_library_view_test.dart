@@ -70,6 +70,7 @@ void main() {
             onAddToQueue: onAddToQueue,
             onPlayAll: onPlayAll,
             onEnqueueAll: onEnqueueAll,
+            initialSection: LibrarySection.folders,
           ),
         ),
       ),

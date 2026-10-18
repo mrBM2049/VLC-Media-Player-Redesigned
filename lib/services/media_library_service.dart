@@ -515,6 +515,58 @@ class MediaLibraryService extends ChangeNotifier {
     return rows.map(_rowToMediaItem).toList();
   }
 
+  /// Retrieves recently opened or added media files.
+  List<MediaItem> getRecentFiles({int limit = 12}) {
+    final stmt = _db.prepare('''
+      SELECT * FROM media
+      ORDER BY CASE WHEN last_played IS NOT NULL THEN last_played ELSE date_added END DESC
+      LIMIT ?;
+    ''');
+    final rows = stmt.select([limit]);
+    stmt.dispose();
+    return rows.map(_rowToMediaItem).toList();
+  }
+
+  /// Retrieves quick playlist groupings (e.g. Watched, Favorites, Audio, In Progress).
+  List<MediaPlaylistGroup> getPlaylists() {
+    final all = getMediaItems();
+    final continueList = getContinueWatching();
+    final watchedList = all.where((i) => i.isWatched).toList();
+    final audioList = all.where((i) => i.mediaType == MediaType.audio).toList();
+    final videoList = all.where((i) => i.mediaType == MediaType.video).toList();
+
+    return [
+      MediaPlaylistGroup(
+        id: 'in_progress',
+        title: 'Continue Watching',
+        itemCount: continueList.length,
+        items: continueList,
+        iconGlyph: 'play',
+      ),
+      MediaPlaylistGroup(
+        id: 'watched_history',
+        title: 'Completed & Watched',
+        itemCount: watchedList.length,
+        items: watchedList,
+        iconGlyph: 'playlist',
+      ),
+      MediaPlaylistGroup(
+        id: 'all_videos',
+        title: 'All Video Library',
+        itemCount: videoList.length,
+        items: videoList,
+        iconGlyph: 'video',
+      ),
+      MediaPlaylistGroup(
+        id: 'music_tracks',
+        title: 'Music & Audio Tracks',
+        itemCount: audioList.length,
+        items: audioList,
+        iconGlyph: 'music',
+      ),
+    ];
+  }
+
   /// Retrieves list of indexed folders.
   List<MediaFolder> getFolders() {
     final rows = _db.select('SELECT * FROM folders WHERE is_banned = 0 ORDER BY name COLLATE NOCASE ASC;');

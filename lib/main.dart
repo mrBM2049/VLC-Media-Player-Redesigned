@@ -463,7 +463,8 @@ class _VlcModernAppState extends State<VlcModernApp> {
                   _isPlaying = true;
                   _isFullLibraryView = false;
                 });
-                _playerController.play(item.mrl);
+                _playerController.open(item.mrl);
+                _playerController.play();
                 _osdController.showPill(
                   action: 'Playing: ${item.displayName}',
                   shortcutKey: 'Space',
@@ -495,7 +496,8 @@ class _VlcModernAppState extends State<VlcModernApp> {
                   _isPlaying = true;
                   _isFullLibraryView = false;
                 });
-                _playerController.play(items.first.mrl);
+                _playerController.open(items.first.mrl);
+                _playerController.play();
                 _queueController.clear();
                 for (int i = 0; i < items.length; i++) {
                   _queueController.addItem(QueueItem(
@@ -534,8 +536,7 @@ class _VlcModernAppState extends State<VlcModernApp> {
                 _playerController.togglePlay();
               },
               onNext: () {
-                _queueController.next();
-                final current = _queueController.currentItem;
+                final current = _queueController.playNext();
                 if (current != null) {
                   setState(() {
                     _mediaTitle = current.title;
@@ -544,8 +545,7 @@ class _VlcModernAppState extends State<VlcModernApp> {
                 }
               },
               onPrevious: () {
-                _queueController.previous();
-                final current = _queueController.currentItem;
+                final current = _queueController.playPrevious();
                 if (current != null) {
                   setState(() {
                     _mediaTitle = current.title;
