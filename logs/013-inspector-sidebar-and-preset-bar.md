@@ -38,3 +38,4 @@ Engineered the 4-tab `InspectorSidebar` (340dp width desktop drawer / mobile bot
   2. `lib/models/preset_models.dart` — Contains `SubtitleProfile` model.
   3. `lib/native/vlc_bridge.dart` — Contains subtitle FFI bridge methods.
 - **Known Edge Cases / Blockers:** None. All tests passing cleanly.
+

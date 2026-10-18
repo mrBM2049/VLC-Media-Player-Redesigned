@@ -44,6 +44,26 @@ class _VlcModernAppState extends State<VlcModernApp> {
   bool _isShuffle = false;
   int _selectedSubTrack = 1;
   Duration _subDelay = Duration.zero;
+  bool _isSubtitleTimelineVisible = true;
+  SubtitleAppearance _subtitleAppearance = SubtitleAppearance.defaultStyle;
+
+  final List<SubtitleDialogueCue> _demoSubtitleCues = const [
+    SubtitleDialogueCue(
+      start: Duration(minutes: 14, seconds: 20),
+      end: Duration(minutes: 14, seconds: 26),
+      text: 'Look at that rabbit... It’s dynamite!',
+    ),
+    SubtitleDialogueCue(
+      start: Duration(minutes: 14, seconds: 28),
+      end: Duration(minutes: 14, seconds: 34),
+      text: 'We need to move quickly before dusk falls.',
+    ),
+    SubtitleDialogueCue(
+      start: Duration(minutes: 14, seconds: 38),
+      end: Duration(minutes: 14, seconds: 45),
+      text: 'Check the perimeter sensor readings right now.',
+    ),
+  ];
 
   final List<VlcSubtitleTrack> _demoSubTracks = const [
     VlcSubtitleTrack(id: 1, name: 'Track 1: English [Full/SDH]', language: 'en'),
@@ -375,6 +395,26 @@ class _VlcModernAppState extends State<VlcModernApp> {
             bottomControls: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                if (_isSubtitleTimelineVisible && _selectedSubTrack != -1)
+                  InteractiveSubtitleTimeline(
+                    position: _position,
+                    duration: _duration,
+                    delay: _subDelay,
+                    cues: _demoSubtitleCues,
+                    onDelayChanged: (d) {
+                      setState(() => _subDelay = d);
+                      _playerController.setSubtitleDelay(d);
+                      _osdController.showPill(
+                        action: 'Subtitle Delay: ${d.inMilliseconds} ms',
+                        shortcutKey: 'G/H',
+                        icon: VlcIconGlyph.subtitles,
+                      );
+                    },
+                    onClose: () {
+                      setState(() => _isSubtitleTimelineVisible = false);
+                    },
+                  ),
+
                 // Edge-to-Edge Thick Seek Bar (10dp -> 16dp on hover)
                 ThickSeekBar(
                   position: _position,
@@ -627,6 +667,75 @@ class _VlcModernAppState extends State<VlcModernApp> {
           onTabChanged: (idx) => _shellController.openDrawer(idx),
           onClose: () => _shellController.closeDrawer(),
           presetController: _presetController,
+          subtitlesTab: SubtitleInspectorTab(
+            tracks: _demoSubTracks,
+            selectedTrackId: _selectedSubTrack,
+            currentDelay: _subDelay,
+            appearance: _subtitleAppearance,
+            isTimelineOverlayEnabled: _isSubtitleTimelineVisible,
+            onSelectTrack: (id) {
+              setState(() => _selectedSubTrack = id);
+              _playerController.setSubtitleTrack(id);
+              _osdController.showPill(
+                action: id == -1 ? 'Subtitles Disabled' : 'Subtitle Track $id Selected',
+                shortcutKey: 'S',
+                icon: VlcIconGlyph.subtitles,
+              );
+            },
+            onDelayChanged: (d) {
+              setState(() => _subDelay = d);
+              _playerController.setSubtitleDelay(d);
+              _osdController.showPill(
+                action: 'Subtitle Delay: ${d.inMilliseconds} ms',
+                shortcutKey: 'G/H',
+                icon: VlcIconGlyph.subtitles,
+              );
+            },
+            onAppearanceChanged: (app) {
+              setState(() => _subtitleAppearance = app);
+            },
+            onToggleTimelineOverlay: (val) {
+              setState(() => _isSubtitleTimelineVisible = val);
+              _osdController.showPill(
+                action: val ? 'Timeline Sync Bar Enabled' : 'Timeline Sync Bar Hidden',
+                shortcutKey: 'Timeline',
+                icon: VlcIconGlyph.subtitles,
+              );
+            },
+            onAddSubtitle: () {
+              showDialog(
+                context: context,
+                barrierColor: Colors.black54,
+                builder: (modalCtx) => AddSubtitlesModal(
+                  currentVideoPath: _fullPath,
+                  folderVideoPaths: [
+                    _fullPath,
+                    '/Users/Movies/Demo Media/Episode 02.mkv',
+                    '/Users/Movies/Demo Media/Episode 03.mkv',
+                  ],
+                  onApplySingleSubtitle: (path) {
+                    _playerController.addSubtitleFile(path, select: true);
+                    _osdController.showPill(
+                      action: 'Loaded: ${path.split(RegExp(r"[\\/]")).last}',
+                      shortcutKey: 'Ctrl+O',
+                      icon: VlcIconGlyph.subtitles,
+                    );
+                  },
+                  onApplyBatchSubtitles: (matches) {
+                    for (final m in matches) {
+                      _playerController.addSubtitleFile(m.subtitlePath, select: false);
+                    }
+                    _osdController.showPill(
+                      action: 'Batch Subtitles Applied (${matches.length} files)',
+                      shortcutKey: 'Batch',
+                      icon: VlcIconGlyph.subtitles,
+                    );
+                  },
+                  onClose: () => Navigator.of(modalCtx).pop(),
+                ),
+              );
+            },
+          ),
           onResetPreset: () {
             _osdController.showPill(
               action: 'Reset to Standard Profile',
