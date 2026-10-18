@@ -35,6 +35,7 @@ class _VlcModernAppState extends State<VlcModernApp> {
   String _fullPath = '/Users/Movies/Demo Media/Big Buck Bunny (4K Remux).mkv';
   bool _isFullscreen = false;
   bool _isPipActive = false;
+  bool _isFullLibraryView = false;
   bool _isPlaying = false;
   Duration _position = const Duration(minutes: 14, seconds: 28);
   Duration _duration = const Duration(hours: 2, minutes: 15, seconds: 40);
@@ -434,6 +435,136 @@ class _VlcModernAppState extends State<VlcModernApp> {
       theme: currentVlcTheme.toThemeData(),
       home: Builder(
         builder: (context) {
+          if (_isFullLibraryView) {
+            return FullLibraryView(
+              mediaLibraryService: _mediaLibraryService,
+              currentMrl: _fullPath,
+              currentTitle: _mediaTitle,
+              isPlaying: _isPlaying,
+              position: _position,
+              duration: _duration,
+              volume: _volume,
+              isMuted: _isMuted,
+              onReturnToPlayer: () {
+                setState(() => _isFullLibraryView = false);
+                _osdController.showPill(
+                  action: 'Returned to Video Player',
+                  shortcutKey: 'Esc',
+                  icon: VlcIconGlyph.play,
+                );
+              },
+              onPlayItem: (item) {
+                setState(() {
+                  _mediaTitle = item.displayName;
+                  _fullPath = item.mrl;
+                  _folderName = item.folderName;
+                  _position = Duration(milliseconds: item.resumePositionMs);
+                  _duration = Duration(milliseconds: item.durationMs > 0 ? item.durationMs : 120000);
+                  _isPlaying = true;
+                  _isFullLibraryView = false;
+                });
+                _playerController.play(item.mrl);
+                _osdController.showPill(
+                  action: 'Playing: ${item.displayName}',
+                  shortcutKey: 'Space',
+                  icon: VlcIconGlyph.play,
+                );
+              },
+              onAddToQueue: (item) {
+                _queueController.addItem(QueueItem(
+                  id: 'item_${DateTime.now().microsecondsSinceEpoch}',
+                  mrl: item.mrl,
+                  title: item.displayName,
+                  artist: item.artist ?? item.folderName,
+                  duration: Duration(milliseconds: item.durationMs),
+                ));
+                _osdController.showPill(
+                  action: 'Added: ${item.displayName}',
+                  shortcutKey: 'Q',
+                  icon: VlcIconGlyph.queue,
+                );
+              },
+              onPlayAll: (items) {
+                if (items.isEmpty) return;
+                setState(() {
+                  _mediaTitle = items.first.displayName;
+                  _fullPath = items.first.mrl;
+                  _folderName = items.first.folderName;
+                  _position = Duration(milliseconds: items.first.resumePositionMs);
+                  _duration = Duration(milliseconds: items.first.durationMs > 0 ? items.first.durationMs : 120000);
+                  _isPlaying = true;
+                  _isFullLibraryView = false;
+                });
+                _playerController.play(items.first.mrl);
+                _queueController.clear();
+                for (int i = 0; i < items.length; i++) {
+                  _queueController.addItem(QueueItem(
+                    id: 'queue_batch_$i',
+                    mrl: items[i].mrl,
+                    title: items[i].displayName,
+                    artist: items[i].artist ?? items[i].folderName,
+                    duration: Duration(milliseconds: items[i].durationMs),
+                    isPlaying: i == 0,
+                  ));
+                }
+                _osdController.showPill(
+                  action: 'Playing ${items.length} items',
+                  shortcutKey: 'Enter',
+                  icon: VlcIconGlyph.play,
+                );
+              },
+              onEnqueueAll: (items) {
+                for (int i = 0; i < items.length; i++) {
+                  _queueController.addItem(QueueItem(
+                    id: 'queue_batch_${DateTime.now().microsecondsSinceEpoch}_$i',
+                    mrl: items[i].mrl,
+                    title: items[i].displayName,
+                    artist: items[i].artist ?? items[i].folderName,
+                    duration: Duration(milliseconds: items[i].durationMs),
+                  ));
+                }
+                _osdController.showPill(
+                  action: 'Enqueued ${items.length} items',
+                  shortcutKey: 'Q',
+                  icon: VlcIconGlyph.queue,
+                );
+              },
+              onTogglePlayPause: () {
+                setState(() => _isPlaying = !_isPlaying);
+                _playerController.togglePlay();
+              },
+              onNext: () {
+                _queueController.next();
+                final current = _queueController.currentItem;
+                if (current != null) {
+                  setState(() {
+                    _mediaTitle = current.title;
+                    _fullPath = current.mrl;
+                  });
+                }
+              },
+              onPrevious: () {
+                _queueController.previous();
+                final current = _queueController.currentItem;
+                if (current != null) {
+                  setState(() {
+                    _mediaTitle = current.title;
+                    _fullPath = current.mrl;
+                  });
+                }
+              },
+              onVolumeChanged: (vol) {
+                setState(() => _volume = vol);
+                _playerController.setVolume(vol);
+              },
+              onToggleMute: () {
+                setState(() => _isMuted = !_isMuted);
+                _playerController.toggleMute();
+              },
+              onAddFolder: () => _showOpenMediaModal(context),
+            );
+          }
+
           final colors = currentVlcTheme.colors;
 
           return AppShell(
@@ -491,6 +622,14 @@ class _VlcModernAppState extends State<VlcModernApp> {
                 icon: VlcIconGlyph.audioTrack,
               );
             },
+            onToggleFullLibrary: () {
+              setState(() => _isFullLibraryView = !_isFullLibraryView);
+              _osdController.showPill(
+                action: _isFullLibraryView ? 'Media Library' : 'Video Player',
+                shortcutKey: 'Ctrl+L',
+                icon: VlcIconGlyph.viewGrid,
+              );
+            },
             osdLayer: OSDNotificationLayer(controller: _osdController),
 
             // Top Player Bar with Theme Switch, Breadcrumbs & Actions
@@ -517,6 +656,15 @@ class _VlcModernAppState extends State<VlcModernApp> {
               onInspectorToggle: () {
                 _shellController.toggleDrawer(0);
               },
+              onLibraryViewToggle: () {
+                setState(() => _isFullLibraryView = !_isFullLibraryView);
+                _osdController.showPill(
+                  action: _isFullLibraryView ? 'Media Library' : 'Video Player',
+                  shortcutKey: 'Ctrl+L',
+                  icon: VlcIconGlyph.viewGrid,
+                );
+              },
+              isLibraryViewActive: _isFullLibraryView,
               onBreadcrumbTap: () {
                 _shellController.toggleLibrary(_isPlaying);
                 _osdController.showPill(

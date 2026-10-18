@@ -52,6 +52,15 @@ enum VlcIconGlyph {
   chevronRight,
   chevronLeft,
   moreVertical,
+  home,
+  video,
+  music,
+  stream,
+  viewGrid,
+  viewList,
+  viewDetails,
+  maximize,
+  minimize,
 
   // Theme Toggles
   themeLight,
@@ -453,6 +462,97 @@ class _VlcMonochromePainter extends CustomPainter {
         canvas.drawLine(Offset(w * 0.18, h * 0.28), Offset(w * 0.82, h * 0.28), paintStroke);
         canvas.drawLine(Offset(w * 0.18, h * 0.50), Offset(w * 0.82, h * 0.50), paintStroke);
         canvas.drawLine(Offset(w * 0.18, h * 0.72), Offset(w * 0.82, h * 0.72), paintStroke);
+        break;
+
+      case VlcIconGlyph.folder:
+        final folderPath = Path()
+          ..moveTo(w * 0.15, h * 0.25)
+          ..lineTo(w * 0.42, h * 0.25)
+          ..lineTo(w * 0.52, h * 0.38)
+          ..lineTo(w * 0.85, h * 0.38)
+          ..arcToPoint(Offset(w * 0.85, h * 0.78), radius: const Radius.circular(2.0))
+          ..lineTo(w * 0.15, h * 0.78)
+          ..close();
+        canvas.drawPath(folderPath, paintStroke);
+        break;
+
+      case VlcIconGlyph.search:
+        canvas.drawCircle(Offset(w * 0.42, h * 0.42), w * 0.22, paintStroke);
+        canvas.drawLine(Offset(w * 0.58, h * 0.58), Offset(w * 0.82, h * 0.82), paintStroke);
+        break;
+
+      case VlcIconGlyph.close:
+        canvas.drawLine(Offset(w * 0.25, h * 0.25), Offset(w * 0.75, h * 0.75), paintStroke);
+        canvas.drawLine(Offset(w * 0.75, h * 0.25), Offset(w * 0.25, h * 0.75), paintStroke);
+        break;
+
+      case VlcIconGlyph.home:
+        final homePath = Path()
+          ..moveTo(w * 0.50, h * 0.18)
+          ..lineTo(w * 0.82, h * 0.45)
+          ..lineTo(w * 0.72, h * 0.45)
+          ..lineTo(w * 0.72, h * 0.82)
+          ..lineTo(w * 0.28, h * 0.82)
+          ..lineTo(w * 0.28, h * 0.45)
+          ..lineTo(w * 0.18, h * 0.45)
+          ..close();
+        canvas.drawPath(homePath, paintStroke);
+        break;
+
+      case VlcIconGlyph.video:
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(Rect.fromLTWH(w * 0.15, h * 0.25, w * 0.70, h * 0.50), const Radius.circular(3.0)),
+          paintStroke,
+        );
+        final playP = Path()
+          ..moveTo(w * 0.42, h * 0.38)
+          ..lineTo(w * 0.62, h * 0.50)
+          ..lineTo(w * 0.42, h * 0.62)
+          ..close();
+        canvas.drawPath(playP, paintFill);
+        break;
+
+      case VlcIconGlyph.music:
+        canvas.drawCircle(Offset(w * 0.32, h * 0.70), w * 0.12, paintFill);
+        canvas.drawCircle(Offset(w * 0.68, h * 0.60), w * 0.12, paintFill);
+        canvas.drawLine(Offset(w * 0.42, h * 0.70), Offset(w * 0.42, h * 0.28), paintStroke);
+        canvas.drawLine(Offset(w * 0.78, h * 0.60), Offset(w * 0.78, h * 0.18), paintStroke);
+        canvas.drawLine(Offset(w * 0.42, h * 0.28), Offset(w * 0.78, h * 0.18), paintStroke);
+        break;
+
+      case VlcIconGlyph.stream:
+        canvas.drawCircle(Offset(w * 0.50, h * 0.70), 3.0, paintFill);
+        canvas.drawArc(Rect.fromCenter(center: Offset(w * 0.50, h * 0.70), width: w * 0.40, height: h * 0.40), -math.pi * 0.8, math.pi * 0.6, false, paintStroke);
+        canvas.drawArc(Rect.fromCenter(center: Offset(w * 0.50, h * 0.70), width: w * 0.70, height: h * 0.70), -math.pi * 0.8, math.pi * 0.6, false, paintStroke);
+        break;
+
+      case VlcIconGlyph.viewGrid:
+        final sz = w * 0.26;
+        canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(w * 0.18, h * 0.18, sz, sz), const Radius.circular(2.0)), paintStroke);
+        canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(w * 0.56, h * 0.18, sz, sz), const Radius.circular(2.0)), paintStroke);
+        canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(w * 0.18, h * 0.56, sz, sz), const Radius.circular(2.0)), paintStroke);
+        canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(w * 0.56, h * 0.56, sz, sz), const Radius.circular(2.0)), paintStroke);
+        break;
+
+      case VlcIconGlyph.viewList:
+        canvas.drawLine(Offset(w * 0.18, h * 0.25), Offset(w * 0.82, h * 0.25), paintStroke);
+        canvas.drawLine(Offset(w * 0.18, h * 0.50), Offset(w * 0.82, h * 0.50), paintStroke);
+        canvas.drawLine(Offset(w * 0.18, h * 0.75), Offset(w * 0.82, h * 0.75), paintStroke);
+        break;
+
+      case VlcIconGlyph.viewDetails:
+        // Table / details icon: header bar + 2 split rows
+        canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(w * 0.15, h * 0.20, w * 0.70, h * 0.60), const Radius.circular(2.5)), paintStroke);
+        canvas.drawLine(Offset(w * 0.15, h * 0.40), Offset(w * 0.85, h * 0.40), paintStroke);
+        canvas.drawLine(Offset(w * 0.45, h * 0.40), Offset(w * 0.45, h * 0.80), paintStroke);
+        break;
+
+      case VlcIconGlyph.maximize:
+        canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(w * 0.20, h * 0.20, w * 0.60, h * 0.60), const Radius.circular(2.0)), paintStroke);
+        break;
+
+      case VlcIconGlyph.minimize:
+        canvas.drawLine(Offset(w * 0.20, h * 0.75), Offset(w * 0.80, h * 0.75), paintStroke);
         break;
 
       default:

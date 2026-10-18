@@ -254,6 +254,8 @@ class AppShell extends StatefulWidget {
   final VoidCallback? onBookmark;
   final ValueChanged<Duration>? onSubtitleDelay;
   final ValueChanged<Duration>? onAudioDelay;
+  final VoidCallback? onToggleLibrary;
+  final VoidCallback? onToggleFullLibrary;
   final bool isFullscreen;
 
   const AppShell({
@@ -282,6 +284,8 @@ class AppShell extends StatefulWidget {
     this.onBookmark,
     this.onSubtitleDelay,
     this.onAudioDelay,
+    this.onToggleLibrary,
+    this.onToggleFullLibrary,
     this.isFullscreen = false,
   });
 
@@ -611,9 +615,19 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
       return KeyEventResult.handled;
     }
 
-    // L: Toggle Compact Media Library Drawer
+    // L / Ctrl+L: Media Library
     if (event.logicalKey == LogicalKeyboardKey.keyL) {
-      _controller.toggleLibrary(_isPlaying);
+      if (isMetaOrControl) {
+        if (widget.onToggleFullLibrary != null) {
+          widget.onToggleFullLibrary!();
+          return KeyEventResult.handled;
+        }
+      }
+      if (widget.onToggleLibrary != null) {
+        widget.onToggleLibrary!();
+      } else {
+        _controller.toggleLibrary(_isPlaying);
+      }
       return KeyEventResult.handled;
     }
 

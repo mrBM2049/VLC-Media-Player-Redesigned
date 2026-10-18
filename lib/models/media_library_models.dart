@@ -130,6 +130,15 @@ class MediaItem {
     return title;
   }
 
+  /// Directory or folder name extracted from folderPath or mrl.
+  String get folderName {
+    if (folderPath.isNotEmpty) {
+      final segments = folderPath.split(RegExp(r'[\\/]')).where((s) => s.isNotEmpty).toList();
+      if (segments.isNotEmpty) return segments.last;
+    }
+    return 'Media';
+  }
+
   MediaItem copyWith({
     int? id,
     String? mrl,

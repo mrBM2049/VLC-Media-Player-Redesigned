@@ -365,6 +365,8 @@ class TopPlayerBar extends StatelessWidget {
   final VoidCallback? onPipToggle;
   final VoidCallback? onFullscreenToggle;
   final VoidCallback? onInspectorToggle;
+  final VoidCallback? onLibraryViewToggle;
+  final bool isLibraryViewActive;
   final ValueChanged<VlcThemeMode>? onThemeModeChanged;
   final double leftSafeAreaInset;
 
@@ -383,6 +385,8 @@ class TopPlayerBar extends StatelessWidget {
     this.onPipToggle,
     this.onFullscreenToggle,
     this.onInspectorToggle,
+    this.onLibraryViewToggle,
+    this.isLibraryViewActive = false,
     this.onThemeModeChanged,
     this.leftSafeAreaInset = 0.0,
   });
@@ -499,6 +503,20 @@ class TopPlayerBar extends StatelessWidget {
                     color: isDrawerOpen ? colors.accent.primary : colors.textPrimary,
                   ),
                 ),
+
+              if (onLibraryViewToggle != null) ...[
+                const SizedBox(width: 6.0),
+                VlcTopBarButton(
+                  tooltip: 'Media Library View [L / Ctrl+L]',
+                  isActive: isLibraryViewActive,
+                  onPressed: onLibraryViewToggle,
+                  child: VlcMonochromeIcon(
+                    VlcIconGlyph.viewGrid,
+                    size: 18.0,
+                    color: isLibraryViewActive ? colors.accent.primary : colors.textPrimary,
+                  ),
+                ),
+              ],
             ],
           ),
         ],

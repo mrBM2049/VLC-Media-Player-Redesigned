@@ -44,3 +44,4 @@ export 'services/file_picker_service.dart';
 export 'models/media_library_models.dart';
 export 'services/media_library_service.dart';
 export 'ui/drawer/compact_library_drawer.dart';
+export 'ui/library/full_library_view.dart';

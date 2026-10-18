@@ -58,7 +58,7 @@
 ### Phase 4: `medialibrary` Integration, Compact Drawer, Music Mode & IPTV Streams
 - [x] **4.1** Integrate VideoLAN `medialibrary` SQLite indexer for folder watching, resume positions, and **Watched First / Unwatched First** sorting.
 - [x] **4.2** Build `CompactLibraryDrawer` (opens alongside playing video from the top folder breadcrumb so users can drag episodes into Queue without leaving the video).
-- [ ] **4.3** Build `FullLibraryView` with draggable bottom-right `MiniPlayerOverlay`, breadcrumb address bar, Grid/List/Details view switcher, and Pinned sidebar items.
+- [x] **4.3** Build `FullLibraryView` with draggable bottom-right `MiniPlayerOverlay`, breadcrumb address bar, Grid/List/Details view switcher, and Pinned sidebar items.
 - [ ] **4.4** Build `HomeView` (replaces empty cone screen with Continue Watching, Recent Files, Playlists, Streams) and `VideosView`.
 - [ ] **4.5** Build `MusicView` (*Songs, Albums, Artists, Genres*) and `MusicPlayerCanvas` (large cover art, ambient blur, waveform seek bar).
 - [ ] **4.6** Build `NetworkStreamsView` with GitHub/IPTV `.m3u` / `.m3u8` channel list parser and split classic "Open Media" into dedicated single-purpose modals (*Stream, Capture Device, Convert, Cast*).
