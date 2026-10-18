@@ -29,6 +29,7 @@ class _VlcModernAppState extends State<VlcModernApp> {
   late final QueueController _queueController;
   late final PresetController _presetController;
   late final MediaLibraryService _mediaLibraryService;
+  late final SettingsService _settingsService;
 
   String _mediaTitle = 'Big Buck Bunny (4K Remux)';
   String _folderName = 'Demo Media';
@@ -176,6 +177,9 @@ class _VlcModernAppState extends State<VlcModernApp> {
 
     // Initialize VideoLAN Medialibrary SQLite Indexer
     _mediaLibraryService = MediaLibraryService();
+
+    // Initialize Unified Settings Service
+    _settingsService = SettingsService.instance;
 
     // Trigger initial resume prompt preview
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -431,6 +435,10 @@ class _VlcModernAppState extends State<VlcModernApp> {
     );
   }
 
+  void _showSettingsModal(BuildContext context) {
+    UnifiedSettingsModal.show(context, service: _settingsService);
+  }
+
   @override
   Widget build(BuildContext context) {
     final currentVlcTheme = _themeController.currentTheme;
@@ -579,6 +587,7 @@ class _VlcModernAppState extends State<VlcModernApp> {
             isFullscreen: _isFullscreen,
             onFullscreenToggle: _toggleFullscreen,
             onOpenFile: () => _showOpenMediaModal(context),
+            onOpenSettings: () => _showSettingsModal(context),
             onCycleSubtitles: _cycleSubtitles,
             onCycleAudio: _cycleAudioTrack,
             onCycleAspectRatio: _cycleAspectRatio,
@@ -649,6 +658,7 @@ class _VlcModernAppState extends State<VlcModernApp> {
               themeMode: _themeController.mode,
               onOpenFile: () => _showOpenMediaModal(context),
               onOpenStream: () => _showOpenMediaModal(context),
+              onOpenSettings: () => _showSettingsModal(context),
               onThemeModeChanged: (mode) {
                 _themeController.setThemeMode(mode);
                 _osdController.showPill(

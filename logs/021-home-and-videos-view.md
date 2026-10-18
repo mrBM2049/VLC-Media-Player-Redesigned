@@ -71,3 +71,4 @@
 
 ## 5. Next Steps
 - **Task 4.5:** Build `MusicView` (*Songs, Albums, Artists, Genres*) and `MusicPlayerCanvas` (large cover art, ambient blur, waveform seek bar).
+

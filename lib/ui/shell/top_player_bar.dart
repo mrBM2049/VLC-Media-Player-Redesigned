@@ -97,6 +97,7 @@ class _VlcTopBarButtonState extends State<VlcTopBarButton> {
 class UnifiedMenuButton extends StatelessWidget {
   final VoidCallback? onOpenFile;
   final VoidCallback? onOpenStream;
+  final VoidCallback? onOpenSettings;
   final VoidCallback? onMenuAction;
   final ValueChanged<VlcThemeMode>? onThemeModeChanged;
 
@@ -104,6 +105,7 @@ class UnifiedMenuButton extends StatelessWidget {
     super.key,
     this.onOpenFile,
     this.onOpenStream,
+    this.onOpenSettings,
     this.onMenuAction,
     this.onThemeModeChanged,
   });
@@ -124,6 +126,8 @@ class UnifiedMenuButton extends StatelessWidget {
           onOpenFile!();
         } else if (value == 'open_stream' && onOpenStream != null) {
           onOpenStream!();
+        } else if (value == 'settings' && onOpenSettings != null) {
+          onOpenSettings!();
         } else if (value == 'theme_dark' && onThemeModeChanged != null) {
           onThemeModeChanged!(VlcThemeMode.dark);
         } else if (value == 'theme_oled' && onThemeModeChanged != null) {
@@ -361,6 +365,7 @@ class TopPlayerBar extends StatelessWidget {
   final VlcThemeMode? themeMode;
   final VoidCallback? onOpenFile;
   final VoidCallback? onOpenStream;
+  final VoidCallback? onOpenSettings;
   final VoidCallback? onBreadcrumbTap;
   final VoidCallback? onPipToggle;
   final VoidCallback? onFullscreenToggle;
@@ -381,6 +386,7 @@ class TopPlayerBar extends StatelessWidget {
     this.themeMode,
     this.onOpenFile,
     this.onOpenStream,
+    this.onOpenSettings,
     this.onBreadcrumbTap,
     this.onPipToggle,
     this.onFullscreenToggle,
@@ -412,6 +418,7 @@ class TopPlayerBar extends StatelessWidget {
           UnifiedMenuButton(
             onOpenFile: onOpenFile,
             onOpenStream: onOpenStream,
+            onOpenSettings: onOpenSettings,
             onThemeModeChanged: onThemeModeChanged,
           ),
           const SizedBox(width: 8.0),

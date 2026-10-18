@@ -533,3 +533,4 @@ class _StreamChannelCardState extends State<_StreamChannelCard> {
     );
   }
 }
+

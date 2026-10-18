@@ -70,3 +70,4 @@
 
 ## 5. Next Steps
 - **Task 4.6:** Build `NetworkStreamsView` with GitHub/IPTV `.m3u` / `.m3u8` channel list parser and split classic "Open Media" into dedicated single-purpose modals (*Stream, Capture Device, Convert, Cast*).
+

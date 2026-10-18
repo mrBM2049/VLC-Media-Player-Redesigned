@@ -256,6 +256,7 @@ class AppShell extends StatefulWidget {
   final ValueChanged<Duration>? onAudioDelay;
   final VoidCallback? onToggleLibrary;
   final VoidCallback? onToggleFullLibrary;
+  final VoidCallback? onOpenSettings;
   final bool isFullscreen;
 
   const AppShell({
@@ -272,6 +273,7 @@ class AppShell extends StatefulWidget {
     this.shellController,
     this.onFullscreenToggle,
     this.onOpenFile,
+    this.onOpenSettings,
     this.onCycleSubtitles,
     this.onCycleAudio,
     this.onCycleAspectRatio,
@@ -384,6 +386,15 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
     if (isMetaOrControl && event.logicalKey == LogicalKeyboardKey.keyO) {
       if (widget.onOpenFile != null) {
         widget.onOpenFile!();
+        return KeyEventResult.handled;
+      }
+    }
+
+    // Ctrl+P or Cmd+P or Cmd+,: Preferences & Settings
+    if ((isMetaOrControl && event.logicalKey == LogicalKeyboardKey.keyP) ||
+        (isMetaOrControl && event.logicalKey == LogicalKeyboardKey.comma)) {
+      if (widget.onOpenSettings != null) {
+        widget.onOpenSettings!();
         return KeyEventResult.handled;
       }
     }

@@ -74,3 +74,4 @@
 ## 5. Next Steps
 - **Phase 5: Reimagined Settings, Hotkeys, Drag-and-Drop Customizer & Mobile Polish**
   - **Task 5.1:** Build `UnifiedSettingsModal` across all 12 Categories with continuous Basic-to-Advanced scroll, human-readable dropdowns, and `ⓘ` tooltips on every setting.
+

@@ -198,3 +198,4 @@ class M3uStreamParser {
     return parse(content);
   }
 }
+

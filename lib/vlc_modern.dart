@@ -55,3 +55,7 @@ export 'ui/popups/stream_modal.dart';
 export 'ui/popups/capture_device_modal.dart';
 export 'ui/popups/convert_modal.dart';
 export 'ui/popups/cast_modal.dart';
+
+// Phase 5 Settings, Hotkeys & Customizer
+export 'services/settings_service.dart';
+export 'ui/settings/unified_settings_modal.dart';
