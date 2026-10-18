@@ -40,3 +40,4 @@ Engineered `SubtitleInspectorTab` (Tab 0 of 4 in `InspectorSidebar`) with track 
   2. `native_core/include/vlc_bridge.h` & `lib/native/vlc_bridge.dart` — Contains 10-band equalizer C ABI functions (`vlc_bridge_set_equalizer_amp`, `vlc_bridge_set_equalizer_preset`, `vlc_bridge_get_equalizer_band_count`).
   3. `lib/models/audio_models.dart` — Audio tracks and output device models.
 - **Known Edge Cases / Blockers:** None.
+

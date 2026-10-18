@@ -80,11 +80,13 @@ class PresetController extends ChangeNotifier {
   ShowPresetProfile _activePreset = ShowPresetProfile.standard;
   bool _applyToAllFolderEpisodes = true;
   String _folderName;
+  final ValueChanged<ShowPresetProfile>? onPresetChanged;
 
   PresetController({
     String folderName = 'Demo Media',
     ShowPresetProfile? initialPreset,
     bool initialApplyToFolder = true,
+    this.onPresetChanged,
   })  : _folderName = folderName,
         _applyToAllFolderEpisodes = initialApplyToFolder {
     if (initialPreset != null) {
@@ -107,6 +109,7 @@ class PresetController extends ChangeNotifier {
   void selectPreset(ShowPresetProfile preset) {
     if (_activePreset != preset) {
       _activePreset = preset;
+      onPresetChanged?.call(preset);
       notifyListeners();
     }
   }

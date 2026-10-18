@@ -731,7 +731,6 @@ class _VlcModernAppState extends State<VlcModernApp> {
                       icon: VlcIconGlyph.subtitles,
                     );
                   },
-                  onClose: () => Navigator.of(modalCtx).pop(),
                 ),
               );
             },

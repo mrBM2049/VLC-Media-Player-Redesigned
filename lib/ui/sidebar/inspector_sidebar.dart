@@ -12,6 +12,8 @@ class InspectorSidebar extends StatefulWidget {
   final int activeTab;
   final ValueChanged<int> onTabChanged;
   final VoidCallback? onClose;
+  final VoidCallback? onResetPreset;
+  final ValueChanged<bool>? onApplyToFolder;
   final PresetController presetController;
   final Widget? subtitlesTab;
   final Widget? audioTab;
@@ -24,6 +26,8 @@ class InspectorSidebar extends StatefulWidget {
     required this.onTabChanged,
     required this.presetController,
     this.onClose,
+    this.onResetPreset,
+    this.onApplyToFolder,
     this.subtitlesTab,
     this.audioTab,
     this.videoTab,
@@ -280,6 +284,7 @@ class _InspectorSidebarState extends State<InspectorSidebar> {
                               onChanged: (val) {
                                 if (val != null) {
                                   widget.presetController.setApplyToFolder(val);
+                                  widget.onApplyToFolder?.call(val);
                                 }
                               },
                             ),
