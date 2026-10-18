@@ -109,6 +109,7 @@ class _VlcModernAppState extends State<VlcModernApp> {
     // Initialize VideoLAN C ABI Bridge Controller
     _playerController = VlcPlayerController();
     _shellController = AppShellController();
+    _shellController.addListener(_onShellChanged);
     _osdController = OsdNotificationController();
 
     // Initialize In-Memory Playback Queue
@@ -194,10 +195,17 @@ class _VlcModernAppState extends State<VlcModernApp> {
     setState(() {});
   }
 
+  void _onShellChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
   @override
   void dispose() {
     _themeController.removeListener(_onThemeChanged);
     _themeController.dispose();
+    _shellController.removeListener(_onShellChanged);
     _shellController.dispose();
     _osdController.dispose();
     _queueController.dispose();
@@ -215,6 +223,116 @@ class _VlcModernAppState extends State<VlcModernApp> {
     setState(() {
       _isPipActive = !_isPipActive;
     });
+  }
+
+  void _cycleSubtitles() {
+    setState(() {
+      if (_selectedSubTrack == -1) {
+        _selectedSubTrack = _demoSubTracks.first.id;
+      } else {
+        final idx = _demoSubTracks.indexWhere((t) => t.id == _selectedSubTrack);
+        if (idx == -1 || idx == _demoSubTracks.length - 1) {
+          _selectedSubTrack = -1; // disabled
+        } else {
+          _selectedSubTrack = _demoSubTracks[idx + 1].id;
+        }
+      }
+    });
+    _playerController.setSubtitleTrack(_selectedSubTrack);
+    final trackName = _selectedSubTrack == -1
+        ? 'Disabled'
+        : _demoSubTracks.firstWhere((t) => t.id == _selectedSubTrack).name;
+    _osdController.showPill(
+      action: 'Subtitles: $trackName',
+      shortcutKey: 'V / S',
+      icon: VlcIconGlyph.subtitles,
+    );
+  }
+
+  void _cycleAudioTrack() {
+    setState(() {
+      final idx = _demoAudioTracks.indexWhere((t) => t.id == _selectedAudioTrack);
+      if (idx == -1 || idx == _demoAudioTracks.length - 1) {
+        _selectedAudioTrack = _demoAudioTracks.first.id;
+      } else {
+        _selectedAudioTrack = _demoAudioTracks[idx + 1].id;
+      }
+    });
+    _playerController.setAudioTrack(_selectedAudioTrack);
+    final trackName = _demoAudioTracks.firstWhere((t) => t.id == _selectedAudioTrack).name;
+    _osdController.showPill(
+      action: 'Audio: $trackName',
+      shortcutKey: 'B',
+      icon: VlcIconGlyph.audioTrack,
+    );
+  }
+
+  void _cycleAspectRatio() {
+    final values = VlcAspectRatio.values;
+    final curIdx = values.indexOf(_videoAdjustState.aspectRatio);
+    final nextAspect = values[(curIdx + 1) % values.length];
+    setState(() {
+      _videoAdjustState = _videoAdjustState.copyWith(aspectRatio: nextAspect);
+    });
+    _osdController.showPill(
+      action: 'Aspect: ${nextAspect.label}',
+      shortcutKey: 'A',
+      icon: VlcIconGlyph.aspectRatio,
+    );
+  }
+
+  void _cycleCrop() {
+    final values = VlcCropGeometry.values;
+    final curIdx = values.indexOf(_videoAdjustState.cropGeometry);
+    final nextCrop = values[(curIdx + 1) % values.length];
+    setState(() {
+      _videoAdjustState = _videoAdjustState.copyWith(cropGeometry: nextCrop);
+    });
+    _osdController.showPill(
+      action: 'Crop: ${nextCrop.label}',
+      shortcutKey: 'C',
+      icon: VlcIconGlyph.crop,
+    );
+  }
+
+  void _addBookmark() {
+    final pos = _position;
+    final id = 'bm_${DateTime.now().millisecondsSinceEpoch}';
+    final title = 'Bookmark at ${pos.inMinutes}:${(pos.inSeconds % 60).toString().padLeft(2, '0')}';
+    final updated = List<VlcPlaybackBookmark>.from(_playbackConfig.bookmarks)
+      ..add(VlcPlaybackBookmark(
+        id: id,
+        title: title,
+        position: pos,
+        createdAt: DateTime.now(),
+      ));
+    setState(() {
+      _playbackConfig = _playbackConfig.copyWith(bookmarks: updated);
+    });
+    _osdController.showPill(
+      action: 'Added Bookmark [${pos.inMinutes}:${(pos.inSeconds % 60).toString().padLeft(2, '0')}]',
+      shortcutKey: 'Ctrl+B',
+      icon: VlcIconGlyph.bookmark,
+    );
+  }
+
+  void _cycleRepeatMode() {
+    setState(() {
+      _repeatMode = switch (_repeatMode) {
+        VlcRepeatMode.off => VlcRepeatMode.all,
+        VlcRepeatMode.all => VlcRepeatMode.one,
+        VlcRepeatMode.one => VlcRepeatMode.off,
+      };
+    });
+    _osdController.showPill(
+      action: switch (_repeatMode) {
+        VlcRepeatMode.off => 'Repeat: Off',
+        VlcRepeatMode.all => 'Repeat: All',
+        VlcRepeatMode.one => 'Repeat: Track',
+      },
+      shortcutKey: 'R',
+      icon: _repeatMode == VlcRepeatMode.one ? VlcIconGlyph.repeatOne : VlcIconGlyph.repeat,
+    );
   }
 
   void _loadAndPlayMedia(String mrl) {
@@ -287,6 +405,55 @@ class _VlcModernAppState extends State<VlcModernApp> {
             isFullscreen: _isFullscreen,
             onFullscreenToggle: _toggleFullscreen,
             onOpenFile: () => _showOpenMediaModal(context),
+            onCycleSubtitles: _cycleSubtitles,
+            onCycleAudio: _cycleAudioTrack,
+            onCycleAspectRatio: _cycleAspectRatio,
+            onCycleCrop: _cycleCrop,
+            onToggleInspector: () => _shellController.toggleDrawer(_shellController.activeDrawerTab),
+            onNextFrame: () {
+              _playerController.nextFrame();
+              _osdController.showPill(
+                action: 'Next Frame',
+                shortcutKey: 'E',
+                icon: VlcIconGlyph.stepForward,
+              );
+            },
+            onPreviousFrame: () {
+              _osdController.showPill(
+                action: 'Previous Frame',
+                shortcutKey: 'Shift+E',
+                icon: VlcIconGlyph.stepBackward,
+              );
+            },
+            onAdjustRate: (newRate) {
+              setState(() {
+                _playbackRate = newRate;
+                _playbackConfig = _playbackConfig.copyWith(playbackRate: newRate);
+              });
+              _osdController.showPill(
+                action: 'Speed: ${newRate.toStringAsFixed(2)}x',
+                shortcutKey: '[ / ]',
+                icon: VlcIconGlyph.speed,
+              );
+            },
+            onCycleRepeat: _cycleRepeatMode,
+            onBookmark: _addBookmark,
+            onSubtitleDelay: (d) {
+              setState(() => _subDelay = d);
+              _osdController.showPill(
+                action: 'Subtitle Delay: ${d.inMilliseconds} ms',
+                shortcutKey: 'G / H',
+                icon: VlcIconGlyph.subtitles,
+              );
+            },
+            onAudioDelay: (d) {
+              setState(() => _audioDelay = d);
+              _osdController.showPill(
+                action: 'Audio Delay: ${d.inMilliseconds} ms',
+                shortcutKey: 'J / K',
+                icon: VlcIconGlyph.audioTrack,
+              );
+            },
             osdLayer: OSDNotificationLayer(controller: _osdController),
 
             // Top Player Bar with Theme Switch, Breadcrumbs & Actions
@@ -493,125 +660,13 @@ class _VlcModernAppState extends State<VlcModernApp> {
                 );
               },
               onSubtitlesTap: () {
-                showDialog(
-                  context: context,
-                  barrierColor: Colors.black45,
-                  builder: (dialogCtx) => Center(
-                    child: SubtitleQuickPopup(
-                      tracks: _demoSubTracks,
-                      selectedTrackId: _selectedSubTrack,
-                      currentDelay: _subDelay,
-                      onSelectTrack: (id) {
-                        setState(() => _selectedSubTrack = id);
-                        _playerController.setSubtitleTrack(id);
-                        _osdController.showPill(
-                          action: id == -1 ? 'Subtitles Disabled' : 'Subtitle Track $id Selected',
-                          shortcutKey: 'S',
-                          icon: VlcIconGlyph.subtitles,
-                        );
-                        Navigator.of(dialogCtx).pop();
-                      },
-                      onDelayChanged: (d) {
-                        setState(() => _subDelay = d);
-                        _playerController.setSubtitleDelay(d);
-                        _osdController.showPill(
-                          action: 'Sub Delay: ${d.inMilliseconds} ms',
-                          shortcutKey: 'G/H',
-                          icon: VlcIconGlyph.subtitles,
-                        );
-                      },
-                      onOpenAddSubtitles: () {
-                        Navigator.of(dialogCtx).pop();
-                        showDialog(
-                          context: context,
-                          barrierColor: Colors.black54,
-                          builder: (modalCtx) => AddSubtitlesModal(
-                            currentVideoPath: _fullPath,
-                            folderVideoPaths: [
-                              _fullPath,
-                              '/Users/Movies/Demo Media/Episode 02.mkv',
-                              '/Users/Movies/Demo Media/Episode 03.mkv',
-                            ],
-                            onApplySingleSubtitle: (path) {
-                              _playerController.addSubtitleFile(path, select: true);
-                              _osdController.showPill(
-                                action: 'Loaded: ${path.split(RegExp(r"[\\/]")).last}',
-                                shortcutKey: 'Ctrl+O',
-                                icon: VlcIconGlyph.subtitles,
-                              );
-                            },
-                            onApplyBatchSubtitles: (matches) {
-                              for (final m in matches) {
-                                _playerController.addSubtitleFile(m.subtitlePath, select: false);
-                              }
-                              _osdController.showPill(
-                                action: 'Batch Linked ${matches.length} Subtitles',
-                                shortcutKey: 'Ctrl+Shift+S',
-                                icon: VlcIconGlyph.subtitles,
-                              );
-                            },
-                          ),
-                        );
-                      },
-                      onClose: () => Navigator.of(dialogCtx).pop(),
-                    ),
-                  ),
-                );
+                _shellController.toggleDrawer(0); // Open Tab 0: Subtitles in Inspector
               },
               onAudioTrackTap: () {
-                showDialog(
-                  context: context,
-                  barrierColor: Colors.black45,
-                  builder: (dialogCtx) => Center(
-                    child: AudioQuickPopup(
-                      tracks: _demoAudioTracks,
-                      selectedTrackId: _selectedAudioTrack,
-                      devices: _demoAudioDevices,
-                      selectedDeviceId: _selectedAudioDevice,
-                      currentDelay: _audioDelay,
-                      onSelectTrack: (id) {
-                        setState(() => _selectedAudioTrack = id);
-                        _playerController.setAudioTrack(id);
-                        _osdController.showPill(
-                          action: id == -1 ? 'Audio Disabled' : 'Audio Track $id Active',
-                          shortcutKey: 'B',
-                          icon: VlcIconGlyph.audioTrack,
-                        );
-                        Navigator.of(dialogCtx).pop();
-                      },
-                      onSelectDevice: (devId) {
-                        setState(() => _selectedAudioDevice = devId);
-                        _playerController.setAudioDevice(devId);
-                        final dev = _demoAudioDevices.firstWhere(
-                          (d) => d.id == devId,
-                          orElse: () => _demoAudioDevices.first,
-                        );
-                        _osdController.showPill(
-                          action: 'Device: ${dev.name}',
-                          shortcutKey: 'Audio',
-                          icon: VlcIconGlyph.audioTrack,
-                        );
-                      },
-                      onDelayChanged: (d) {
-                        setState(() => _audioDelay = d);
-                        _playerController.setAudioDelay(d);
-                        _osdController.showPill(
-                          action: 'Audio Delay: ${d.inMilliseconds} ms',
-                          shortcutKey: 'J/K',
-                          icon: VlcIconGlyph.audioTrack,
-                        );
-                      },
-                      onOpenEqualizer: () {
-                        Navigator.of(dialogCtx).pop();
-                        _shellController.toggleDrawer(1); // Open Tab 1: EQ
-                      },
-                      onClose: () => Navigator.of(dialogCtx).pop(),
-                    ),
-                  ),
-                );
+                _shellController.toggleDrawer(1); // Open Tab 1: Audio & EQ in Inspector
               },
               onEqualizerTap: () {
-                _shellController.toggleDrawer(1); // Open Tab 1: EQ
+                _shellController.toggleDrawer(1); // Open Tab 1: Audio & EQ in Inspector
               },
               onRepeatToggle: () {
                 setState(() {

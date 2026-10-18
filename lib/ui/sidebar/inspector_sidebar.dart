@@ -39,85 +39,22 @@ class InspectorSidebar extends StatefulWidget {
 }
 
 class _InspectorSidebarState extends State<InspectorSidebar> {
-  void _showPresetPicker(BuildContext context, VlcColors colors, VlcThemeData vlcTheme) {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: colors.surface,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(VlcGeometry.radiusLarge)),
-      ),
-      builder: (ctx) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Select Preset Profile',
-                      style: vlcTheme.typography.titleSmall.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: colors.textPrimary,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close, size: 18),
-                      onPressed: () => Navigator.of(ctx).pop(),
-                    ),
-                  ],
-                ),
-                const Divider(),
-                for (final preset in widget.presetController.presets) ...[
-                  ListTile(
-                    dense: true,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 2.0),
-                    shape: VlcGeometry.buttonShape,
-                    selected: widget.presetController.activePreset == preset,
-                    selectedTileColor: colors.accent.subtleBackground,
-                    leading: Icon(
-                      widget.presetController.activePreset == preset
-                          ? Icons.radio_button_checked
-                          : Icons.radio_button_unchecked,
-                      size: 18,
-                      color: widget.presetController.activePreset == preset
-                          ? colors.accent.primary
-                          : colors.textTertiary,
-                    ),
-                    title: Text(
-                      preset.name,
-                      style: vlcTheme.typography.bodySmall.copyWith(
-                        fontWeight: widget.presetController.activePreset == preset
-                            ? FontWeight.w600
-                            : FontWeight.w500,
-                        color: colors.textPrimary,
-                      ),
-                    ),
-                    subtitle: Text(
-                      preset.subtitle,
-                      style: vlcTheme.typography.labelSmall.copyWith(
-                        color: colors.textTertiary,
-                      ),
-                    ),
-                    onTap: () {
-                      widget.presetController.selectPreset(preset);
-                      Navigator.of(ctx).pop();
-                    },
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      );
-    },
-  );
-}
+  late int _selectedTab;
+  bool _isPresetListExpanded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedTab = widget.activeTab;
+  }
+
+  @override
+  void didUpdateWidget(InspectorSidebar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.activeTab != oldWidget.activeTab) {
+      _selectedTab = widget.activeTab;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -211,16 +148,18 @@ class _InspectorSidebarState extends State<InspectorSidebar> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Preset Dropdown Trigger
+                      // Preset Dropdown Trigger (Expands inline, no modal popup)
                       InkWell(
-                        onTap: () => _showPresetPicker(context, colors, vlcTheme),
+                        onTap: () => setState(() => _isPresetListExpanded = !_isPresetListExpanded),
                         borderRadius: VlcGeometry.borderRadiusMedium,
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 8.0),
                           decoration: BoxDecoration(
                             color: colors.surface,
                             borderRadius: VlcGeometry.borderRadiusMedium,
-                            border: Border.all(color: colors.accent.subtleBorder),
+                            border: Border.all(
+                              color: _isPresetListExpanded ? colors.accent.primary : colors.accent.subtleBorder,
+                            ),
                           ),
                           child: Row(
                             children: [
@@ -258,14 +197,86 @@ class _InspectorSidebarState extends State<InspectorSidebar> {
                               ),
                               const SizedBox(width: 4.0),
                               Icon(
-                                Icons.arrow_drop_down,
+                                _isPresetListExpanded ? Icons.arrow_drop_up : Icons.arrow_drop_down,
                                 size: 18.0,
-                                color: colors.textSecondary,
+                                color: _isPresetListExpanded ? colors.accent.primary : colors.textSecondary,
                               ),
                             ],
                           ),
                         ),
                       ),
+
+                      // Inline Expanded Presets List (No popups)
+                      if (_isPresetListExpanded) ...[
+                        const SizedBox(height: 6.0),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: colors.surface,
+                            borderRadius: VlcGeometry.borderRadiusMedium,
+                            border: Border.all(color: colors.border),
+                          ),
+                          child: Column(
+                            children: [
+                              for (int pIdx = 0; pIdx < widget.presetController.presets.length; pIdx++) ...[
+                                Builder(builder: (context) {
+                                  final preset = widget.presetController.presets[pIdx];
+                                  final isSelected = widget.presetController.activePreset == preset;
+                                  return InkWell(
+                                    onTap: () {
+                                      widget.presetController.selectPreset(preset);
+                                      setState(() => _isPresetListExpanded = false);
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 7.0),
+                                      decoration: BoxDecoration(
+                                        color: isSelected ? colors.accent.subtleBackground : Colors.transparent,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                                            size: 15.0,
+                                            color: isSelected ? colors.accent.primary : colors.textTertiary,
+                                          ),
+                                          const SizedBox(width: 8.0),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  preset.name,
+                                                  style: vlcTheme.typography.bodySmall.copyWith(
+                                                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                                                    color: isSelected ? colors.accent.primary : colors.textPrimary,
+                                                    fontSize: 11.5,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                                Text(
+                                                  preset.subtitle,
+                                                  style: vlcTheme.typography.labelSmall.copyWith(
+                                                    color: colors.textTertiary,
+                                                    fontSize: 9.5,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                }),
+                                if (pIdx < widget.presetController.presets.length - 1)
+                                  Divider(height: 1.0, color: colors.border.withOpacity(0.5)),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 8.0),
 
                       // Per-Show Folder Persistence Toggle
@@ -339,7 +350,7 @@ class _InspectorSidebarState extends State<InspectorSidebar> {
                 // -------------------------------------------------------------
                 Expanded(
                   child: IndexedStack(
-                    index: widget.activeTab.clamp(0, 3),
+                    index: _selectedTab.clamp(0, 3),
                     children: [
                       widget.subtitlesTab ??
                           _buildTabPlaceholder('Subtitles', 'Synced Timeline & Font Styles', VlcIconGlyph.tabSubtitles, colors, vlcTheme),
@@ -367,11 +378,16 @@ class _InspectorSidebarState extends State<InspectorSidebar> {
     VlcColors colors,
     VlcThemeData vlcTheme,
   ) {
-    final isActive = widget.activeTab == index;
+    final isActive = _selectedTab == index;
 
     return Expanded(
       child: InkWell(
-        onTap: () => widget.onTabChanged(index),
+        onTap: () {
+          setState(() {
+            _selectedTab = index;
+          });
+          widget.onTabChanged(index);
+        },
         borderRadius: VlcGeometry.borderRadiusMedium,
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 7.0),

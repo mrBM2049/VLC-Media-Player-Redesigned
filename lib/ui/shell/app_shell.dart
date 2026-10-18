@@ -215,6 +215,18 @@ class AppShell extends StatefulWidget {
   final AppShellController? shellController;
   final VoidCallback? onFullscreenToggle;
   final VoidCallback? onOpenFile;
+  final VoidCallback? onCycleSubtitles;
+  final VoidCallback? onCycleAudio;
+  final VoidCallback? onCycleAspectRatio;
+  final VoidCallback? onCycleCrop;
+  final VoidCallback? onToggleInspector;
+  final VoidCallback? onNextFrame;
+  final VoidCallback? onPreviousFrame;
+  final ValueChanged<double>? onAdjustRate;
+  final VoidCallback? onCycleRepeat;
+  final VoidCallback? onBookmark;
+  final ValueChanged<Duration>? onSubtitleDelay;
+  final ValueChanged<Duration>? onAudioDelay;
   final bool isFullscreen;
 
   const AppShell({
@@ -230,6 +242,18 @@ class AppShell extends StatefulWidget {
     this.shellController,
     this.onFullscreenToggle,
     this.onOpenFile,
+    this.onCycleSubtitles,
+    this.onCycleAudio,
+    this.onCycleAspectRatio,
+    this.onCycleCrop,
+    this.onToggleInspector,
+    this.onNextFrame,
+    this.onPreviousFrame,
+    this.onAdjustRate,
+    this.onCycleRepeat,
+    this.onBookmark,
+    this.onSubtitleDelay,
+    this.onAudioDelay,
     this.isFullscreen = false,
   });
 
@@ -269,6 +293,13 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
 
     // Initial countdown
     _controller.resetInactivityTimer(_isPlaying);
+
+    // Ensure keyboard focus is captured
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && !_focusNode.hasFocus) {
+        _focusNode.requestFocus();
+      }
+    });
   }
 
   void _onControllerChanged() {
@@ -294,6 +325,7 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
   }
 
   void _handleTap() {
+    _focusNode.requestFocus();
     _controller.toggleUi();
   }
 
@@ -308,6 +340,7 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
 
     final isMetaOrControl = HardwareKeyboard.instance.isMetaPressed ||
         HardwareKeyboard.instance.isControlPressed;
+    final isShift = HardwareKeyboard.instance.isShiftPressed;
 
     // Ctrl+H or Cmd+H: Toggle "Hide UI Completely"
     if (isMetaOrControl && event.logicalKey == LogicalKeyboardKey.keyH) {
@@ -319,6 +352,14 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
     if (isMetaOrControl && event.logicalKey == LogicalKeyboardKey.keyO) {
       if (widget.onOpenFile != null) {
         widget.onOpenFile!();
+        return KeyEventResult.handled;
+      }
+    }
+
+    // Ctrl+B or Cmd+B: Add Visual Bookmark
+    if (isMetaOrControl && event.logicalKey == LogicalKeyboardKey.keyB) {
+      if (widget.onBookmark != null) {
+        widget.onBookmark!();
         return KeyEventResult.handled;
       }
     }
@@ -342,6 +383,155 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
     if (event.logicalKey == LogicalKeyboardKey.keyQ) {
       _controller.toggleQueue(_isPlaying);
       return KeyEventResult.handled;
+    }
+
+    // I: Toggle Inspector Sidebar
+    if (event.logicalKey == LogicalKeyboardKey.keyI) {
+      if (widget.onToggleInspector != null) {
+        widget.onToggleInspector!();
+      } else {
+        _controller.toggleDrawer(_controller.activeDrawerTab, _isPlaying);
+      }
+      return KeyEventResult.handled;
+    }
+
+    // V or S (without Ctrl/Cmd): Cycle Subtitle Tracks
+    if (!isMetaOrControl && (event.logicalKey == LogicalKeyboardKey.keyV || event.logicalKey == LogicalKeyboardKey.keyS)) {
+      if (widget.onCycleSubtitles != null) {
+        widget.onCycleSubtitles!();
+        return KeyEventResult.handled;
+      }
+    }
+
+    // B (without Ctrl/Cmd): Cycle Audio Tracks
+    if (!isMetaOrControl && event.logicalKey == LogicalKeyboardKey.keyB) {
+      if (widget.onCycleAudio != null) {
+        widget.onCycleAudio!();
+        return KeyEventResult.handled;
+      }
+    }
+
+    // A: Cycle Aspect Ratio
+    if (event.logicalKey == LogicalKeyboardKey.keyA) {
+      if (widget.onCycleAspectRatio != null) {
+        widget.onCycleAspectRatio!();
+        return KeyEventResult.handled;
+      }
+    }
+
+    // C: Cycle Crop Geometry
+    if (event.logicalKey == LogicalKeyboardKey.keyC) {
+      if (widget.onCycleCrop != null) {
+        widget.onCycleCrop!();
+        return KeyEventResult.handled;
+      }
+    }
+
+    // E: Next Frame (Frame stepping)
+    if (event.logicalKey == LogicalKeyboardKey.keyE && !isShift) {
+      if (widget.onNextFrame != null) {
+        widget.onNextFrame!();
+      } else {
+        widget.playerController.nextFrame();
+      }
+      _controller.showUi(restartTimer: true);
+      return KeyEventResult.handled;
+    }
+
+    // Shift+E: Previous Frame
+    if (event.logicalKey == LogicalKeyboardKey.keyE && isShift) {
+      if (widget.onPreviousFrame != null) {
+        widget.onPreviousFrame!();
+        return KeyEventResult.handled;
+      }
+    }
+
+    // R: Cycle Repeat Mode
+    if (event.logicalKey == LogicalKeyboardKey.keyR) {
+      if (widget.onCycleRepeat != null) {
+        widget.onCycleRepeat!();
+        return KeyEventResult.handled;
+      }
+    }
+
+    // [ or -: Slower playback speed
+    if (event.logicalKey == LogicalKeyboardKey.bracketLeft || event.logicalKey == LogicalKeyboardKey.minus) {
+      final currentRate = widget.playerController.rate;
+      final newRate = (currentRate - 0.1).clamp(0.25, 4.0);
+      widget.playerController.setRate(newRate);
+      widget.onAdjustRate?.call(double.parse(newRate.toStringAsFixed(2)));
+      _controller.showUi(restartTimer: true);
+      return KeyEventResult.handled;
+    }
+
+    // ] or = / +: Faster playback speed
+    if (event.logicalKey == LogicalKeyboardKey.bracketRight || event.logicalKey == LogicalKeyboardKey.equal) {
+      final currentRate = widget.playerController.rate;
+      final newRate = (currentRate + 0.1).clamp(0.25, 4.0);
+      widget.playerController.setRate(newRate);
+      widget.onAdjustRate?.call(double.parse(newRate.toStringAsFixed(2)));
+      _controller.showUi(restartTimer: true);
+      return KeyEventResult.handled;
+    }
+
+    // Backquote (`): Reset speed to 1.0x
+    if (event.logicalKey == LogicalKeyboardKey.backquote) {
+      widget.playerController.setRate(1.0);
+      widget.onAdjustRate?.call(1.0);
+      _controller.showUi(restartTimer: true);
+      return KeyEventResult.handled;
+    }
+
+    // G / H: Subtitle delay -50ms / +50ms
+    if (event.logicalKey == LogicalKeyboardKey.keyG) {
+      final newDelay = widget.playerController.subtitleDelay - const Duration(milliseconds: 50);
+      widget.playerController.setSubtitleDelay(newDelay);
+      widget.onSubtitleDelay?.call(newDelay);
+      _controller.showUi(restartTimer: true);
+      return KeyEventResult.handled;
+    }
+    if (event.logicalKey == LogicalKeyboardKey.keyH) {
+      final newDelay = widget.playerController.subtitleDelay + const Duration(milliseconds: 50);
+      widget.playerController.setSubtitleDelay(newDelay);
+      widget.onSubtitleDelay?.call(newDelay);
+      _controller.showUi(restartTimer: true);
+      return KeyEventResult.handled;
+    }
+
+    // J / K: Audio delay -50ms / +50ms
+    if (event.logicalKey == LogicalKeyboardKey.keyJ) {
+      final newDelay = widget.playerController.audioDelay - const Duration(milliseconds: 50);
+      widget.playerController.setAudioDelay(newDelay);
+      widget.onAudioDelay?.call(newDelay);
+      _controller.showUi(restartTimer: true);
+      return KeyEventResult.handled;
+    }
+    if (event.logicalKey == LogicalKeyboardKey.keyK) {
+      final newDelay = widget.playerController.audioDelay + const Duration(milliseconds: 50);
+      widget.playerController.setAudioDelay(newDelay);
+      widget.onAudioDelay?.call(newDelay);
+      _controller.showUi(restartTimer: true);
+      return KeyEventResult.handled;
+    }
+
+    // Digit 1, 2, 3, 4: Quick jump to Inspector Tab 0 (Subs), 1 (Audio), 2 (Video), 3 (Play)
+    if (!isMetaOrControl) {
+      if (event.logicalKey == LogicalKeyboardKey.digit1) {
+        _controller.openDrawer(0);
+        return KeyEventResult.handled;
+      }
+      if (event.logicalKey == LogicalKeyboardKey.digit2) {
+        _controller.openDrawer(1);
+        return KeyEventResult.handled;
+      }
+      if (event.logicalKey == LogicalKeyboardKey.digit3) {
+        _controller.openDrawer(2);
+        return KeyEventResult.handled;
+      }
+      if (event.logicalKey == LogicalKeyboardKey.digit4) {
+        _controller.openDrawer(3);
+        return KeyEventResult.handled;
+      }
     }
 
     // Escape: Close drawer, close queue, or exit fullscreen

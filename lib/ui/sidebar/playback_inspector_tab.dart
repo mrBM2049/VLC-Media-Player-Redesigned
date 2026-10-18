@@ -928,3 +928,4 @@ class _PlaybackInspectorTabState extends State<PlaybackInspectorTab> {
     );
   }
 }
+

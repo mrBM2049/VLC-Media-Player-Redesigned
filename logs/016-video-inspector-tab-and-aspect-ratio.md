@@ -48,3 +48,4 @@ Verified with 94/94 Flutter tests passing (100%), full macOS native build compil
   2. `lib/src/controller/vlc_player_controller.dart` — `rate`, `setRate`, `chapterCount`, `chapter`, `setChapter`, `nextChapter`, `previousChapter`, `nextFrame`.
   3. `lib/models/preset_models.dart` — Speed preferences per show profile.
 - **Known Edge Cases / Blockers:** None.
+

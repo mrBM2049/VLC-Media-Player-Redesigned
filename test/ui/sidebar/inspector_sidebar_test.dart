@@ -95,11 +95,10 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Tap preset banner to open preset picker
+      // Tap preset banner to expand preset picker inline
       await tester.tap(find.text('Standard (Neutral)'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Select Preset Profile'), findsOneWidget);
       expect(find.text('Anime & Asian Cinema'), findsOneWidget);
       expect(find.text('Action & Blockbuster'), findsOneWidget);
 
