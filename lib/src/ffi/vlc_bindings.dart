@@ -61,8 +61,11 @@ class VlcBridgeBindings {
       if (libraryPath != null) {
         _lib = DynamicLibrary.open(libraryPath);
       } else if (Platform.isMacOS) {
+        final frameworkPath = '${File(Platform.resolvedExecutable).parent.path}/../Frameworks/libvlc_modern_core.dylib';
         final local = File('build/native_core/libvlc_modern_core.dylib');
-        if (local.existsSync()) {
+        if (File(frameworkPath).existsSync()) {
+          _lib = DynamicLibrary.open(File(frameworkPath).absolute.path);
+        } else if (local.existsSync()) {
           _lib = DynamicLibrary.open(local.absolute.path);
         } else {
           _lib = DynamicLibrary.open('libvlc_modern_core.dylib');

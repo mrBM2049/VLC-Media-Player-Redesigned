@@ -60,3 +60,4 @@ Architected and completed **Task 3.1**, launching **Phase 3 (Quick Popups, Batch
   1. `lib/ui/popups/subtitle_quick_popup.dart` (pattern analog for quick flyout)
   2. `native_core/include/vlc_bridge.h` (`vlc_bridge_get_audio_track`, `vlc_bridge_set_audio_track`, `vlc_bridge_get_audio_delay`, `vlc_bridge_set_audio_delay`)
   3. `docs/Progress.md`
+

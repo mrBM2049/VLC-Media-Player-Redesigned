@@ -1,5 +1,8 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'models/subtitle_models.dart';
+import 'ui/popups/subtitle_quick_popup.dart';
+import 'ui/popups/add_subtitles_modal.dart';
 import 'vlc_modern.dart';
 
 void main() {
@@ -33,6 +36,15 @@ class _VlcModernAppState extends State<VlcModernApp> {
   double _playbackRate = 1.0;
   VlcRepeatMode _repeatMode = VlcRepeatMode.off;
   bool _isShuffle = false;
+  int _selectedSubTrack = 1;
+  Duration _subDelay = Duration.zero;
+
+  final List<VlcSubtitleTrack> _demoSubTracks = const [
+    VlcSubtitleTrack(id: 1, name: 'Track 1: English [Full/SDH]', language: 'en'),
+    VlcSubtitleTrack(id: 2, name: 'Track 2: Spanish [Latin]', language: 'es'),
+    VlcSubtitleTrack(id: 3, name: 'Track 3: French [Parisian]', language: 'fr'),
+    VlcSubtitleTrack(id: 4, name: 'Track 4: Japanese [Original]', language: 'ja'),
+  ];
 
   @override
   void initState() {
@@ -271,11 +283,68 @@ class _VlcModernAppState extends State<VlcModernApp> {
                 );
               },
               onSubtitlesTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('Subtitles Selector (Track 1: English [Default])'),
-                    duration: const Duration(seconds: 2),
-                    backgroundColor: colors.surfaceVariant,
+                showDialog(
+                  context: context,
+                  barrierColor: Colors.black45,
+                  builder: (dialogCtx) => Center(
+                    child: SubtitleQuickPopup(
+                      tracks: _demoSubTracks,
+                      selectedTrackId: _selectedSubTrack,
+                      currentDelay: _subDelay,
+                      onSelectTrack: (id) {
+                        setState(() => _selectedSubTrack = id);
+                        _playerController.setSubtitleTrack(id);
+                        _osdController.showPill(
+                          action: id == -1 ? 'Subtitles Disabled' : 'Subtitle Track $id Selected',
+                          shortcutKey: 'S',
+                          icon: VlcIconGlyph.subtitles,
+                        );
+                        Navigator.of(dialogCtx).pop();
+                      },
+                      onDelayChanged: (d) {
+                        setState(() => _subDelay = d);
+                        _playerController.setSubtitleDelay(d);
+                        _osdController.showPill(
+                          action: 'Sub Delay: ${d.inMilliseconds} ms',
+                          shortcutKey: 'G/H',
+                          icon: VlcIconGlyph.subtitles,
+                        );
+                      },
+                      onOpenAddSubtitles: () {
+                        Navigator.of(dialogCtx).pop();
+                        showDialog(
+                          context: context,
+                          barrierColor: Colors.black54,
+                          builder: (modalCtx) => AddSubtitlesModal(
+                            currentVideoPath: _fullPath,
+                            folderVideoPaths: [
+                              _fullPath,
+                              '/Users/Movies/Demo Media/Episode 02.mkv',
+                              '/Users/Movies/Demo Media/Episode 03.mkv',
+                            ],
+                            onApplySingleSubtitle: (path) {
+                              _playerController.addSubtitleFile(path, select: true);
+                              _osdController.showPill(
+                                action: 'Loaded: ${path.split(RegExp(r"[\\/]")).last}',
+                                shortcutKey: 'Ctrl+O',
+                                icon: VlcIconGlyph.subtitles,
+                              );
+                            },
+                            onApplyBatchSubtitles: (matches) {
+                              for (final m in matches) {
+                                _playerController.addSubtitleFile(m.subtitlePath, select: false);
+                              }
+                              _osdController.showPill(
+                                action: 'Batch Linked ${matches.length} Subtitles',
+                                shortcutKey: 'Ctrl+Shift+S',
+                                icon: VlcIconGlyph.subtitles,
+                              );
+                            },
+                          ),
+                        );
+                      },
+                      onClose: () => Navigator.of(dialogCtx).pop(),
+                    ),
                   ),
                 );
               },
@@ -304,9 +373,11 @@ class _VlcModernAppState extends State<VlcModernApp> {
                 setState(() => _isShuffle = !_isShuffle);
               },
             ),
+          ],
+        ),
 
-            // 4-Tab Inspector Drawer preview
-            rightDrawer: Container(
+        // 4-Tab Inspector Drawer preview
+        rightDrawer: Container(
               color: colors.surface,
               padding: const EdgeInsets.all(16),
               child: Column(
