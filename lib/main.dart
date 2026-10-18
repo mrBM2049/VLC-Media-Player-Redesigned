@@ -49,6 +49,12 @@ class _VlcModernAppState extends State<VlcModernApp> {
   bool _isSubtitleTimelineVisible = true;
   SubtitleAppearance _subtitleAppearance = SubtitleAppearance.defaultStyle;
 
+  bool get _isCurrentAudio {
+    if (_fullPath.isEmpty) return false;
+    final ext = p.extension(_fullPath).toLowerCase();
+    return audioExtensions.contains(ext);
+  }
+
   final List<SubtitleDialogueCue> _demoSubtitleCues = const [
     SubtitleDialogueCue(
       start: Duration(minutes: 14, seconds: 20),
@@ -675,10 +681,51 @@ class _VlcModernAppState extends State<VlcModernApp> {
               },
             ),
 
-            // Video Surface canvas (displays cone emblem and Open Media CTA when idle)
-            videoSurface: Container(
-              color: colors.background,
-              child: Center(
+            // Video Surface canvas (displays MusicPlayerCanvas when audio is playing, or cone emblem and Open Media CTA when idle)
+            videoSurface: _isCurrentAudio && _isPlaying
+                ? MusicPlayerCanvas(
+                    title: _mediaTitle,
+                    artist: _folderName.isNotEmpty ? _folderName : 'Unknown Artist',
+                    album: 'Library',
+                    audioFormat: _fullPath.toLowerCase().endsWith('.flac')
+                        ? 'FLAC • 24-bit / 96kHz'
+                        : _fullPath.toLowerCase().endsWith('.wav')
+                            ? 'WAV • PCM 1411kbps'
+                            : 'MP3 • 320kbps',
+                    isPlaying: _isPlaying,
+                    position: _position,
+                    duration: _duration,
+                    onSeek: (pos) {
+                      _playerController.setTime(pos.inMilliseconds);
+                      setState(() => _position = pos);
+                    },
+                    onTogglePlayPause: () => _playerController.togglePlay(),
+                    onNext: () {
+                      final current = _queueController.playNext();
+                      if (current != null) {
+                        setState(() {
+                          _mediaTitle = current.title;
+                          _fullPath = current.mrl;
+                        });
+                        _playerController.open(current.mrl);
+                        _playerController.play();
+                      }
+                    },
+                    onPrevious: () {
+                      final current = _queueController.playPrevious();
+                      if (current != null) {
+                        setState(() {
+                          _mediaTitle = current.title;
+                          _fullPath = current.mrl;
+                        });
+                        _playerController.open(current.mrl);
+                        _playerController.play();
+                      }
+                    },
+                  )
+                : Container(
+                    color: colors.background,
+                    child: Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [

@@ -396,4 +396,73 @@ class MediaPlaylistGroup {
   });
 }
 
+/// Logical grouping of audio tracks by Album.
+class MusicAlbumGroup {
+  final String name;
+  final String artist;
+  final String? coverPath;
+  final int? year;
+  final List<MediaItem> tracks;
+
+  const MusicAlbumGroup({
+    required this.name,
+    required this.artist,
+    this.coverPath,
+    this.year,
+    required this.tracks,
+  });
+
+  int get trackCount => tracks.length;
+
+  int get totalDurationMs => tracks.fold<int>(0, (sum, item) => sum + item.durationMs);
+
+  String get formattedTotalDuration {
+    final s = (totalDurationMs / 1000).round();
+    final m = s ~/ 60;
+    final remainingS = s % 60;
+    if (m >= 60) {
+      final h = m ~/ 60;
+      final remainingM = m % 60;
+      return '$h hr $remainingM min';
+    }
+    return '$m min $remainingS sec';
+  }
+}
+
+/// Logical grouping of audio tracks by Artist.
+class MusicArtistGroup {
+  final String name;
+  final List<MediaItem> tracks;
+
+  const MusicArtistGroup({
+    required this.name,
+    required this.tracks,
+  });
+
+  int get trackCount => tracks.length;
+
+  int get albumCount {
+    final albums = <String>{};
+    for (final t in tracks) {
+      if (t.album != null && t.album!.isNotEmpty) {
+        albums.add(t.album!);
+      }
+    }
+    return albums.isEmpty ? 1 : albums.length;
+  }
+}
+
+/// Logical grouping of audio tracks by Genre.
+class MusicGenreGroup {
+  final String name;
+  final List<MediaItem> tracks;
+
+  const MusicGenreGroup({
+    required this.name,
+    required this.tracks,
+  });
+
+  int get trackCount => tracks.length;
+}
+
 

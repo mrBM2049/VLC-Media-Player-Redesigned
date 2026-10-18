@@ -146,7 +146,13 @@ class MediaLibraryService extends ChangeNotifier {
   }
 
   /// Indexes a single file, adding or updating its metadata in the database.
-  MediaItem? indexFile(String filePath, {int durationMs = 0}) {
+  MediaItem? indexFile(
+    String filePath, {
+    int durationMs = 0,
+    String? artist,
+    String? album,
+    String? genre,
+  }) {
     final file = File(filePath);
     if (!file.existsSync()) return null;
 
@@ -164,6 +170,27 @@ class MediaLibraryService extends ChangeNotifier {
     final folderPath = file.parent.path;
     final rawFileName = p.basenameWithoutExtension(filePath);
     final parsed = _parseMediaTitle(rawFileName);
+
+    String? detectedArtist = artist;
+    String? detectedAlbum = album;
+    String? detectedGenre = genre;
+
+    String parsedTitle = parsed.title;
+    if (mediaType == MediaType.audio) {
+      if (rawFileName.contains(' - ')) {
+        final parts = rawFileName.split(' - ');
+        if (parts.length >= 2) {
+          detectedArtist ??= parts[0].trim();
+          parsedTitle = _cleanTitle(parts.sublist(1).join(' - '));
+        }
+      }
+      if (detectedAlbum == null) {
+        final parentName = p.basename(folderPath);
+        if (parentName.isNotEmpty && parentName != '.' && parentName != 'Music') {
+          detectedAlbum = parentName;
+        }
+      }
+    }
 
     // Check if media already exists to preserve resume & watched state
     final existingStmt = _db.prepare('SELECT * FROM media WHERE mrl = ? LIMIT 1;');
@@ -184,15 +211,21 @@ class MediaLibraryService extends ChangeNotifier {
           folder_path = ?,
           duration_ms = ?,
           season = ?,
-          episode = ?
+          episode = ?,
+          artist = COALESCE(?, artist),
+          album = COALESCE(?, album),
+          genre = COALESCE(?, genre)
         WHERE mrl = ?;
       ''', [
-        parsed.title,
+        parsedTitle,
         stat.size,
         folderPath,
         updatedDuration,
         parsed.season,
         parsed.episode,
+        detectedArtist,
+        detectedAlbum,
+        detectedGenre,
         filePath,
       ]);
     } else {
@@ -205,7 +238,7 @@ class MediaLibraryService extends ChangeNotifier {
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
       ''', [
         filePath,
-        parsed.title,
+        parsedTitle,
         durationMs,
         null,
         0,
@@ -218,9 +251,9 @@ class MediaLibraryService extends ChangeNotifier {
         null,
         parsed.season,
         parsed.episode,
-        null,
-        null,
-        null,
+        detectedArtist,
+        detectedAlbum,
+        detectedGenre,
         now,
       ]);
     }
@@ -565,6 +598,95 @@ class MediaLibraryService extends ChangeNotifier {
         iconGlyph: 'music',
       ),
     ];
+  }
+
+  /// Groups all audio tracks into Albums.
+  List<MusicAlbumGroup> getAlbums({String? searchQuery}) {
+    final audioItems = getMediaItems(
+      filter: MediaFilter.audioOnly,
+      sortOrder: MediaSortOrder.titleAz,
+      searchQuery: searchQuery,
+    );
+
+    final Map<String, List<MediaItem>> grouped = {};
+    for (final item in audioItems) {
+      final albumName = (item.album != null && item.album!.trim().isNotEmpty)
+          ? item.album!.trim()
+          : (item.folderName.isNotEmpty ? item.folderName : 'Unknown Album');
+      grouped.putIfAbsent(albumName, () => []).add(item);
+    }
+
+    final List<MusicAlbumGroup> albums = [];
+    grouped.forEach((albumName, tracks) {
+      final artistName = tracks.first.artist?.isNotEmpty == true
+          ? tracks.first.artist!
+          : 'Unknown Artist';
+      albums.add(MusicAlbumGroup(
+        name: albumName,
+        artist: artistName,
+        coverPath: tracks.first.thumbnailPath,
+        tracks: tracks,
+      ));
+    });
+
+    albums.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    return albums;
+  }
+
+  /// Groups all audio tracks into Artists.
+  List<MusicArtistGroup> getArtists({String? searchQuery}) {
+    final audioItems = getMediaItems(
+      filter: MediaFilter.audioOnly,
+      sortOrder: MediaSortOrder.titleAz,
+      searchQuery: searchQuery,
+    );
+
+    final Map<String, List<MediaItem>> grouped = {};
+    for (final item in audioItems) {
+      final artistName = (item.artist != null && item.artist!.trim().isNotEmpty)
+          ? item.artist!.trim()
+          : 'Unknown Artist';
+      grouped.putIfAbsent(artistName, () => []).add(item);
+    }
+
+    final List<MusicArtistGroup> artists = [];
+    grouped.forEach((artistName, tracks) {
+      artists.add(MusicArtistGroup(
+        name: artistName,
+        tracks: tracks,
+      ));
+    });
+
+    artists.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    return artists;
+  }
+
+  /// Groups all audio tracks into Genres.
+  List<MusicGenreGroup> getGenres({String? searchQuery}) {
+    final audioItems = getMediaItems(
+      filter: MediaFilter.audioOnly,
+      sortOrder: MediaSortOrder.titleAz,
+      searchQuery: searchQuery,
+    );
+
+    final Map<String, List<MediaItem>> grouped = {};
+    for (final item in audioItems) {
+      final genreName = (item.genre != null && item.genre!.trim().isNotEmpty)
+          ? item.genre!.trim()
+          : 'Soundtrack';
+      grouped.putIfAbsent(genreName, () => []).add(item);
+    }
+
+    final List<MusicGenreGroup> genres = [];
+    grouped.forEach((genreName, tracks) {
+      genres.add(MusicGenreGroup(
+        name: genreName,
+        tracks: tracks,
+      ));
+    });
+
+    genres.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    return genres;
   }
 
   /// Retrieves list of indexed folders.

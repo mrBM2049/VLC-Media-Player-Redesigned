@@ -47,3 +47,5 @@ export 'ui/drawer/compact_library_drawer.dart';
 export 'ui/library/full_library_view.dart';
 export 'ui/library/home_view.dart';
 export 'ui/library/videos_view.dart';
+export 'ui/library/music_view.dart';
+export 'ui/player/music_player_canvas.dart';

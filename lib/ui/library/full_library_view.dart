@@ -6,6 +6,7 @@ import '../../services/media_library_service.dart';
 import '../../theme/vlc_theme.dart';
 import '../drawer/compact_library_drawer.dart';
 import 'home_view.dart';
+import 'music_view.dart';
 import 'videos_view.dart';
 
 /// Navigation sections available in the Full Library sidebar.
@@ -200,6 +201,15 @@ class _FullLibraryViewState extends State<FullLibraryView> {
                           )
                         : _activeSection == LibrarySection.videos && _searchQuery.isEmpty && _selectedFolderPath == null
                             ? VideosView(
+                                mediaLibraryService: widget.mediaLibraryService,
+                                onPlayItem: widget.onPlayItem,
+                                onAddToQueue: widget.onAddToQueue,
+                                onPlayAll: widget.onPlayAll,
+                                onEnqueueAll: widget.onEnqueueAll,
+                                onAddFolder: widget.onAddFolder,
+                              )
+                        : _activeSection == LibrarySection.music && _searchQuery.isEmpty && _selectedFolderPath == null
+                            ? MusicView(
                                 mediaLibraryService: widget.mediaLibraryService,
                                 onPlayItem: widget.onPlayItem,
                                 onAddToQueue: widget.onAddToQueue,
