@@ -518,12 +518,11 @@ class _VlcModernAppState extends State<VlcModernApp> {
                 _shellController.toggleDrawer(0);
               },
               onBreadcrumbTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Opening Folder Library: $_folderName'),
-                    duration: const Duration(seconds: 2),
-                    backgroundColor: colors.surfaceVariant,
-                  ),
+                _shellController.toggleLibrary(_isPlaying);
+                _osdController.showPill(
+                  action: _shellController.isLibraryOpen ? 'Library: $_folderName' : 'Library Closed',
+                  shortcutKey: 'L',
+                  icon: VlcIconGlyph.folder,
                 );
               },
             ),
@@ -733,6 +732,66 @@ class _VlcModernAppState extends State<VlcModernApp> {
               },
             ),
           ],
+        ),
+
+        // Compact Media Library Drawer (Desktop 340dp left drawer)
+        libraryDrawer: CompactLibraryDrawer(
+          mediaLibraryService: _mediaLibraryService,
+          currentMrl: _fullPath,
+          activeFolderPath: _folderName,
+          onClose: () => _shellController.closeLibrary(_isPlaying),
+          onPlayItem: (item) => _loadAndPlayMedia(item.mrl),
+          onAddToQueue: (item) {
+            _queueController.addItem(
+              QueueItem(
+                id: 'q_${DateTime.now().millisecondsSinceEpoch}_${item.id}',
+                mrl: item.mrl,
+                title: item.displayName,
+                artist: item.formattedDuration,
+                duration: Duration(milliseconds: item.durationMs),
+              ),
+            );
+            _osdController.showPill(
+              action: 'Enqueued: ${item.displayName}',
+              shortcutKey: '+',
+              icon: VlcIconGlyph.queue,
+            );
+          },
+          onPlayAll: (items) {
+            if (items.isEmpty) return;
+            _queueController.clear();
+            for (final item in items) {
+              _queueController.addItem(
+                QueueItem(
+                  id: 'q_${DateTime.now().millisecondsSinceEpoch}_${item.id}',
+                  mrl: item.mrl,
+                  title: item.displayName,
+                  artist: item.formattedDuration,
+                  duration: Duration(milliseconds: item.durationMs),
+                ),
+              );
+            }
+            _loadAndPlayMedia(items.first.mrl);
+          },
+          onEnqueueAll: (items) {
+            for (final item in items) {
+              _queueController.addItem(
+                QueueItem(
+                  id: 'q_${DateTime.now().millisecondsSinceEpoch}_${item.id}',
+                  mrl: item.mrl,
+                  title: item.displayName,
+                  artist: item.formattedDuration,
+                  duration: Duration(milliseconds: item.durationMs),
+                ),
+              );
+            }
+            _osdController.showPill(
+              action: 'Enqueued ${items.length} items',
+              shortcutKey: '+',
+              icon: VlcIconGlyph.queue,
+            );
+          },
+          onAddFolder: () => _showOpenMediaModal(context),
         ),
 
         // Temporary Playback Queue Drawer

@@ -18,6 +18,7 @@ class AppShellController extends ChangeNotifier {
   bool _isLockedHidden = false;
   bool _isDrawerOpen = false;
   bool _isQueueOpen = false;
+  bool _isLibraryOpen = false;
   int _activeDrawerTab = 0;
   bool _isHoveringControls = false;
 
@@ -31,6 +32,7 @@ class AppShellController extends ChangeNotifier {
   bool get isLockedHidden => _isLockedHidden;
   bool get isDrawerOpen => _isDrawerOpen;
   bool get isQueueOpen => _isQueueOpen;
+  bool get isLibraryOpen => _isLibraryOpen;
   int get activeDrawerTab => _activeDrawerTab;
   bool get isHoveringControls => _isHoveringControls;
 
@@ -60,7 +62,7 @@ class AppShellController extends ChangeNotifier {
 
   /// Hide the chrome overlays
   void hideUi() {
-    if (_isHoveringControls || _isDrawerOpen || _isQueueOpen) return;
+    if (_isHoveringControls || _isDrawerOpen || _isQueueOpen || _isLibraryOpen) return;
 
     if (_isUiVisible) {
       _isUiVisible = false;
@@ -89,6 +91,7 @@ class AppShellController extends ChangeNotifier {
       _isUiVisible = false;
       _isDrawerOpen = false;
       _isQueueOpen = false;
+      _isLibraryOpen = false;
       _inactivityTimer?.cancel();
     } else {
       _isUiVisible = true;
@@ -113,7 +116,7 @@ class AppShellController extends ChangeNotifier {
     if (_isLockedHidden) return;
 
     // Keep visible if user is interacting with controls, drawer is open, or paused
-    if (_isHoveringControls || _isDrawerOpen || _isQueueOpen || (!isPlaying && keepVisibleWhenPaused)) {
+    if (_isHoveringControls || _isDrawerOpen || _isQueueOpen || _isLibraryOpen || (!isPlaying && keepVisibleWhenPaused)) {
       if (!_isUiVisible) {
         _isUiVisible = true;
         notifyListeners();
@@ -122,7 +125,7 @@ class AppShellController extends ChangeNotifier {
     }
 
     _inactivityTimer = Timer(currentInactivityDuration, () {
-      if (!_isHoveringControls && !_isDrawerOpen && !_isQueueOpen) {
+      if (!_isHoveringControls && !_isDrawerOpen && !_isQueueOpen && !_isLibraryOpen) {
         hideUi();
       }
     });
@@ -190,6 +193,29 @@ class AppShellController extends ChangeNotifier {
     }
   }
 
+  void openLibrary() {
+    _isLibraryOpen = true;
+    _isUiVisible = true;
+    _inactivityTimer?.cancel();
+    notifyListeners();
+  }
+
+  void closeLibrary([bool isPlaying = true]) {
+    if (_isLibraryOpen) {
+      _isLibraryOpen = false;
+      notifyListeners();
+      resetInactivityTimer(isPlaying);
+    }
+  }
+
+  void toggleLibrary([bool isPlaying = true]) {
+    if (_isLibraryOpen) {
+      closeLibrary(isPlaying);
+    } else {
+      openLibrary();
+    }
+  }
+
   @override
   void dispose() {
     _inactivityTimer?.cancel();
@@ -211,6 +237,7 @@ class AppShell extends StatefulWidget {
   final Widget? osdLayer;
   final Widget? rightDrawer;
   final Widget? queueDrawer;
+  final Widget? libraryDrawer;
   final Widget? centerPrompt;
   final AppShellController? shellController;
   final VoidCallback? onFullscreenToggle;
@@ -238,6 +265,7 @@ class AppShell extends StatefulWidget {
     this.osdLayer,
     this.rightDrawer,
     this.queueDrawer,
+    this.libraryDrawer,
     this.centerPrompt,
     this.shellController,
     this.onFullscreenToggle,
@@ -583,6 +611,12 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
       return KeyEventResult.handled;
     }
 
+    // L: Toggle Compact Media Library Drawer
+    if (event.logicalKey == LogicalKeyboardKey.keyL) {
+      _controller.toggleLibrary(_isPlaying);
+      return KeyEventResult.handled;
+    }
+
     return KeyEventResult.ignored;
   }
 
@@ -761,6 +795,23 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
                     duration: const Duration(milliseconds: 250),
                     curve: Curves.easeOutCubic,
                     child: widget.queueDrawer!,
+                  ),
+                ),
+
+              // ---------------------------------------------------------------
+              // Layer 8: Left Compact Media Library Drawer (Desktop 340dp)
+              // ---------------------------------------------------------------
+              if (widget.libraryDrawer != null)
+                Positioned(
+                  top: 0,
+                  bottom: 0,
+                  left: 0,
+                  width: VlcGeometry.inspectorDrawerWidth,
+                  child: AnimatedSlide(
+                    offset: _controller.isLibraryOpen ? Offset.zero : const Offset(-1.0, 0),
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeOutCubic,
+                    child: widget.libraryDrawer!,
                   ),
                 ),
             ],

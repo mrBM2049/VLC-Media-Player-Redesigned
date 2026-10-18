@@ -61,3 +61,4 @@ Verified with **122 / 122 Flutter tests passing (100%)**, **11 / 11 Native C++ b
   2. `lib/ui/shell/top_player_bar.dart` — `onFolderBreadcrumbTap` trigger.
   3. `lib/ui/drawer/queue_drawer.dart` — Reference drawer pattern with drag-and-drop mechanics.
 - **Known Edge Cases / Blockers:** None.
+

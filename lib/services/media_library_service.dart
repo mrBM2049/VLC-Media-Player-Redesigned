@@ -607,7 +607,7 @@ class MediaLibraryService extends ChangeNotifier {
       final e = int.tryParse(matchSxx.group(2)!);
       final cleanTitle = _cleanTitle(rawName.substring(0, matchSxx.start));
       return _ParsedMediaInfo(
-        title: cleanTitle.isEmpty ? rawName : cleanTitle,
+        title: cleanTitle.isEmpty ? _cleanTitle(rawName) : cleanTitle,
         season: s,
         episode: e,
       );
@@ -621,7 +621,7 @@ class MediaLibraryService extends ChangeNotifier {
       final e = int.tryParse(matchNumX.group(2)!);
       final cleanTitle = _cleanTitle(rawName.substring(0, matchNumX.start));
       return _ParsedMediaInfo(
-        title: cleanTitle.isEmpty ? rawName : cleanTitle,
+        title: cleanTitle.isEmpty ? _cleanTitle(rawName) : cleanTitle,
         season: s,
         episode: e,
       );
@@ -634,7 +634,7 @@ class MediaLibraryService extends ChangeNotifier {
       final e = int.tryParse(matchEp.group(1)!);
       final cleanTitle = _cleanTitle(rawName.substring(0, matchEp.start));
       return _ParsedMediaInfo(
-        title: cleanTitle.isEmpty ? rawName : cleanTitle,
+        title: cleanTitle.isEmpty ? _cleanTitle(rawName) : cleanTitle,
         season: 1,
         episode: e,
       );
@@ -674,3 +674,4 @@ class _ParsedMediaInfo {
 
   const _ParsedMediaInfo({required this.title, this.season, this.episode});
 }
+

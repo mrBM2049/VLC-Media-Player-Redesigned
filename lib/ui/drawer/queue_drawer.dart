@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../models/queue_models.dart';
+import '../../models/media_library_models.dart';
 import '../../theme/vlc_colors.dart';
 import '../../theme/vlc_geometry.dart';
 import '../../theme/vlc_icons.dart';
@@ -252,12 +253,40 @@ class QueueDrawer extends StatelessWidget {
                   ),
 
                 // -------------------------------------------------------------
-                // 3. Queue List or Empty State
+                // 3. Queue List or Empty State with DragTarget for MediaItem
                 // -------------------------------------------------------------
                 Expanded(
-                  child: items.isEmpty
-                      ? _buildEmptyState(context, colors, vlcTheme)
-                      : _buildQueueList(context, colors, vlcTheme, items),
+                  child: DragTarget<MediaItem>(
+                    onWillAcceptWithDetails: (details) => true,
+                    onAcceptWithDetails: (details) {
+                      final media = details.data;
+                      controller.addItem(
+                        QueueItem(
+                          id: 'q_${DateTime.now().millisecondsSinceEpoch}_${media.id}',
+                          mrl: media.mrl,
+                          title: media.displayName,
+                          artist: media.formattedDuration,
+                          duration: Duration(milliseconds: media.durationMs),
+                        ),
+                      );
+                    },
+                    builder: (context, candidateData, rejectedData) {
+                      final isHovered = candidateData.isNotEmpty;
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: isHovered
+                              ? colors.accent.subtleBackground
+                              : Colors.transparent,
+                          border: isHovered
+                              ? Border.all(color: colors.accent.primary, width: 2.0)
+                              : null,
+                        ),
+                        child: items.isEmpty
+                            ? _buildEmptyState(context, colors, vlcTheme)
+                            : _buildQueueList(context, colors, vlcTheme, items),
+                      );
+                    },
+                  ),
                 ),
 
                 // -------------------------------------------------------------
