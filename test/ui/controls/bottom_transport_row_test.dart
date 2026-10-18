@@ -127,6 +127,8 @@ void main() {
       bool repeatTriggered = false;
       double newRate = 1.0;
 
+      bool queueTriggered = false;
+
       await tester.pumpWidget(
         MaterialApp(
           theme: VlcThemeData.dark().toThemeData(),
@@ -141,6 +143,8 @@ void main() {
               onEqualizerTap: () => eqTriggered = true,
               onRepeatToggle: () => repeatTriggered = true,
               onRateChanged: (r) => newRate = r,
+              onQueueTap: () => queueTriggered = true,
+              isQueueOpen: false,
             ),
           ),
         ),
@@ -152,8 +156,6 @@ void main() {
       expect(newRate, 1.25);
 
       // Tap subtitles button
-      final allButtons = find.byType(VlcTopBarButton);
-      // Find subtitles button
       await tester.tap(find.byTooltip('Subtitles [V]'));
       expect(subtitlesTriggered, isTrue);
 
@@ -164,6 +166,10 @@ void main() {
       // Tap Repeat button
       await tester.tap(find.byTooltip('Repeat: Off'));
       expect(repeatTriggered, isTrue);
+
+      // Tap Queue button
+      await tester.tap(find.byTooltip('Play Queue [Q]'));
+      expect(queueTriggered, isTrue);
     });
   });
 }

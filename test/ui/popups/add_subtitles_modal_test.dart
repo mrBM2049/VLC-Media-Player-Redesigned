@@ -72,6 +72,7 @@ void main() {
       // Test Download & Apply (which completes & closes dialog)
       await tester.tap(find.text('Download & Apply').first);
       expect(singleSubApplied, isNotNull);
+      expect(batchSubsApplied, isNull);
     });
   });
 }

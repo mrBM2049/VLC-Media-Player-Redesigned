@@ -1,8 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../../theme/vlc_colors.dart';
-import '../../theme/vlc_geometry.dart';
-import '../../theme/vlc_icons.dart';
 import '../../theme/vlc_theme.dart';
 
 /// Notification pill model

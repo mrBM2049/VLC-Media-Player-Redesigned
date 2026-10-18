@@ -30,6 +30,7 @@ class BottomTransportRow extends StatefulWidget {
   final bool isShuffle;
   final bool hasSubtitles;
   final bool hasAudioTracks;
+  final bool isQueueOpen;
 
   final VoidCallback? onPlayPause;
   final VoidCallback? onPrevious;
@@ -43,6 +44,7 @@ class BottomTransportRow extends StatefulWidget {
   final VoidCallback? onEqualizerTap;
   final VoidCallback? onRepeatToggle;
   final VoidCallback? onShuffleToggle;
+  final VoidCallback? onQueueTap;
 
   const BottomTransportRow({
     super.key,
@@ -56,6 +58,7 @@ class BottomTransportRow extends StatefulWidget {
     this.isShuffle = false,
     this.hasSubtitles = true,
     this.hasAudioTracks = true,
+    this.isQueueOpen = false,
     this.onPlayPause,
     this.onPrevious,
     this.onNext,
@@ -68,6 +71,7 @@ class BottomTransportRow extends StatefulWidget {
     this.onEqualizerTap,
     this.onRepeatToggle,
     this.onShuffleToggle,
+    this.onQueueTap,
   });
 
   @override
@@ -368,6 +372,23 @@ class _BottomTransportRowState extends State<BottomTransportRow> {
                 color: widget.isShuffle ? colors.accent.primary : colors.textSecondary,
               ),
             ),
+
+          // Play Queue Drawer Toggle
+          if (widget.onQueueTap != null) ...[
+            const SizedBox(width: 4.0),
+            VlcTopBarButton(
+              width: 34.0,
+              height: 34.0,
+              tooltip: 'Play Queue [Q]',
+              isActive: widget.isQueueOpen,
+              onPressed: widget.onQueueTap,
+              child: VlcMonochromeIcon(
+                VlcIconGlyph.queue,
+                size: 18.0,
+                color: widget.isQueueOpen ? colors.accent.primary : colors.textSecondary,
+              ),
+            ),
+          ],
         ],
       ),
     );

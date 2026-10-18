@@ -4,8 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../src/controller/vlc_player_controller.dart';
-import '../../theme/vlc_colors.dart';
-import '../../theme/vlc_geometry.dart';
 import '../../theme/vlc_theme.dart';
 
 /// Controller coordinating chrome visibility, auto-hide timers, drawer states,
@@ -19,6 +17,7 @@ class AppShellController extends ChangeNotifier {
   bool _isUiVisible = true;
   bool _isLockedHidden = false;
   bool _isDrawerOpen = false;
+  bool _isQueueOpen = false;
   int _activeDrawerTab = 0;
   bool _isHoveringControls = false;
 
@@ -31,6 +30,7 @@ class AppShellController extends ChangeNotifier {
   bool get isUiVisible => _isUiVisible && !_isLockedHidden;
   bool get isLockedHidden => _isLockedHidden;
   bool get isDrawerOpen => _isDrawerOpen;
+  bool get isQueueOpen => _isQueueOpen;
   int get activeDrawerTab => _activeDrawerTab;
   bool get isHoveringControls => _isHoveringControls;
 
@@ -60,7 +60,7 @@ class AppShellController extends ChangeNotifier {
 
   /// Hide the chrome overlays
   void hideUi() {
-    if (_isHoveringControls || _isDrawerOpen) return;
+    if (_isHoveringControls || _isDrawerOpen || _isQueueOpen) return;
 
     if (_isUiVisible) {
       _isUiVisible = false;
@@ -88,6 +88,7 @@ class AppShellController extends ChangeNotifier {
     if (_isLockedHidden) {
       _isUiVisible = false;
       _isDrawerOpen = false;
+      _isQueueOpen = false;
       _inactivityTimer?.cancel();
     } else {
       _isUiVisible = true;
@@ -112,7 +113,7 @@ class AppShellController extends ChangeNotifier {
     if (_isLockedHidden) return;
 
     // Keep visible if user is interacting with controls, drawer is open, or paused
-    if (_isHoveringControls || _isDrawerOpen || (!isPlaying && keepVisibleWhenPaused)) {
+    if (_isHoveringControls || _isDrawerOpen || _isQueueOpen || (!isPlaying && keepVisibleWhenPaused)) {
       if (!_isUiVisible) {
         _isUiVisible = true;
         notifyListeners();
@@ -121,7 +122,7 @@ class AppShellController extends ChangeNotifier {
     }
 
     _inactivityTimer = Timer(currentInactivityDuration, () {
-      if (!_isHoveringControls && !_isDrawerOpen) {
+      if (!_isHoveringControls && !_isDrawerOpen && !_isQueueOpen) {
         hideUi();
       }
     });
@@ -143,6 +144,7 @@ class AppShellController extends ChangeNotifier {
   void openDrawer(int tabIndex) {
     _activeDrawerTab = tabIndex;
     _isDrawerOpen = true;
+    _isQueueOpen = false;
     _isUiVisible = true;
     _inactivityTimer?.cancel();
     notifyListeners();
@@ -161,6 +163,30 @@ class AppShellController extends ChangeNotifier {
       closeDrawer(isPlaying);
     } else {
       openDrawer(tabIndex);
+    }
+  }
+
+  void openQueue() {
+    _isQueueOpen = true;
+    _isDrawerOpen = false;
+    _isUiVisible = true;
+    _inactivityTimer?.cancel();
+    notifyListeners();
+  }
+
+  void closeQueue([bool isPlaying = true]) {
+    if (_isQueueOpen) {
+      _isQueueOpen = false;
+      notifyListeners();
+      resetInactivityTimer(isPlaying);
+    }
+  }
+
+  void toggleQueue([bool isPlaying = true]) {
+    if (_isQueueOpen) {
+      closeQueue(isPlaying);
+    } else {
+      openQueue();
     }
   }
 
@@ -184,6 +210,7 @@ class AppShell extends StatefulWidget {
   final Widget? bottomControls;
   final Widget? osdLayer;
   final Widget? rightDrawer;
+  final Widget? queueDrawer;
   final Widget? centerPrompt;
   final AppShellController? shellController;
   final VoidCallback? onFullscreenToggle;
@@ -197,6 +224,7 @@ class AppShell extends StatefulWidget {
     this.bottomControls,
     this.osdLayer,
     this.rightDrawer,
+    this.queueDrawer,
     this.centerPrompt,
     this.shellController,
     this.onFullscreenToggle,
@@ -300,8 +328,18 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
       }
     }
 
-    // Escape: Close drawer or exit fullscreen
+    // Q: Toggle Play Queue Drawer
+    if (event.logicalKey == LogicalKeyboardKey.keyQ) {
+      _controller.toggleQueue(_isPlaying);
+      return KeyEventResult.handled;
+    }
+
+    // Escape: Close drawer, close queue, or exit fullscreen
     if (event.logicalKey == LogicalKeyboardKey.escape) {
+      if (_controller.isQueueOpen) {
+        _controller.closeQueue(_isPlaying);
+        return KeyEventResult.handled;
+      }
       if (_controller.isDrawerOpen) {
         _controller.closeDrawer(_isPlaying);
         return KeyEventResult.handled;
@@ -506,6 +544,23 @@ class _AppShellState extends State<AppShell> with SingleTickerProviderStateMixin
                     duration: const Duration(milliseconds: 250),
                     curve: Curves.easeOutCubic,
                     child: widget.rightDrawer!,
+                  ),
+                ),
+
+              // ---------------------------------------------------------------
+              // Layer 7: Temporary Playback Queue Drawer (Desktop 340dp)
+              // ---------------------------------------------------------------
+              if (widget.queueDrawer != null)
+                Positioned(
+                  top: 0,
+                  bottom: 0,
+                  right: 0,
+                  width: VlcGeometry.inspectorDrawerWidth,
+                  child: AnimatedSlide(
+                    offset: _controller.isQueueOpen ? Offset.zero : const Offset(1.0, 0),
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeOutCubic,
+                    child: widget.queueDrawer!,
                   ),
                 ),
             ],

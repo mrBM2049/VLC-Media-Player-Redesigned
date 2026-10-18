@@ -97,6 +97,29 @@ void main() {
 
       controller.dispose();
     });
+
+    test('Queue drawer controls toggle and close correctly', () {
+      final controller = AppShellController();
+      expect(controller.isQueueOpen, false);
+
+      controller.openQueue();
+      expect(controller.isQueueOpen, true);
+      expect(controller.isDrawerOpen, false);
+      expect(controller.isUiVisible, true);
+
+      controller.toggleQueue();
+      expect(controller.isQueueOpen, false);
+
+      controller.toggleQueue();
+      expect(controller.isQueueOpen, true);
+
+      // Opening inspector drawer automatically closes queue
+      controller.openDrawer(1);
+      expect(controller.isDrawerOpen, true);
+      expect(controller.isQueueOpen, false);
+
+      controller.dispose();
+    });
   });
 
   group('AppShell Widget Layering Tests', () {
@@ -123,6 +146,10 @@ void main() {
               height: 60,
               child: const Text('Bottom Controls'),
             ),
+            queueDrawer: Container(
+              key: const ValueKey('queue_drawer'),
+              child: const Text('Queue Drawer Content'),
+            ),
           ),
         ),
       );
@@ -130,6 +157,7 @@ void main() {
       expect(find.byKey(const ValueKey('video_surface')), findsOneWidget);
       expect(find.byKey(const ValueKey('top_bar')), findsOneWidget);
       expect(find.byKey(const ValueKey('bottom_controls')), findsOneWidget);
+      expect(find.byKey(const ValueKey('queue_drawer')), findsOneWidget);
 
       controller.dispose();
     });

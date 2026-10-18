@@ -24,6 +24,7 @@ class _VlcModernAppState extends State<VlcModernApp> {
   late final VlcPlayerController _playerController;
   late final AppShellController _shellController;
   late final OsdNotificationController _osdController;
+  late final QueueController _queueController;
 
   String _mediaTitle = 'Big Buck Bunny (4K Remux)';
   String _folderName = 'Demo Media';
@@ -77,6 +78,49 @@ class _VlcModernAppState extends State<VlcModernApp> {
     _shellController = AppShellController();
     _osdController = OsdNotificationController();
 
+    // Initialize In-Memory Playback Queue
+    _queueController = QueueController(
+      initialItems: const [
+        QueueItem(
+          id: 'q1',
+          mrl: '/Users/Movies/Demo Media/Big Buck Bunny (4K Remux).mkv',
+          title: 'Big Buck Bunny (4K Remux)',
+          artist: 'Blender Foundation • 4K 60fps',
+          duration: Duration(hours: 2, minutes: 15, seconds: 40),
+          isPlaying: true,
+        ),
+        QueueItem(
+          id: 'q2',
+          mrl: '/Users/Movies/Demo Media/Elephants Dream (Open Movie).mkv',
+          title: 'Elephants Dream (Open Movie)',
+          artist: 'Orange Open Movie Project',
+          duration: Duration(minutes: 10, seconds: 54),
+        ),
+        QueueItem(
+          id: 'q3',
+          mrl: '/Users/Movies/Demo Media/Sintel (4K HDR Master).mkv',
+          title: 'Sintel (4K HDR Master)',
+          artist: 'Blender Animation Studio',
+          duration: Duration(minutes: 15, seconds: 22),
+        ),
+        QueueItem(
+          id: 'q4',
+          mrl: '/Users/Movies/Demo Media/Tears of Steel (VFX Remaster).mkv',
+          title: 'Tears of Steel (VFX Remaster)',
+          artist: 'Mango Open Movie Project',
+          duration: Duration(minutes: 12, seconds: 14),
+        ),
+        QueueItem(
+          id: 'q5',
+          mrl: '/Users/Movies/Demo Media/Cosmos Laundromat (First Cycle).mkv',
+          title: 'Cosmos Laundromat (First Cycle)',
+          artist: 'Gooseberry Open Movie',
+          duration: Duration(minutes: 12, seconds: 10),
+        ),
+      ],
+      initialIndex: 0,
+    );
+
     // Trigger initial resume prompt preview
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _osdController.showResumePrompt(
@@ -112,6 +156,7 @@ class _VlcModernAppState extends State<VlcModernApp> {
     _themeController.dispose();
     _shellController.dispose();
     _osdController.dispose();
+    _queueController.dispose();
     super.dispose();
   }
 
@@ -435,8 +480,51 @@ class _VlcModernAppState extends State<VlcModernApp> {
               onShuffleToggle: () {
                 setState(() => _isShuffle = !_isShuffle);
               },
+              isQueueOpen: _shellController.isQueueOpen,
+              onQueueTap: () {
+                _shellController.toggleQueue();
+                _osdController.showPill(
+                  action: _shellController.isQueueOpen ? 'Queue Drawer' : 'Queue Closed',
+                  shortcutKey: 'Q',
+                  icon: VlcIconGlyph.queue,
+                );
+              },
             ),
           ],
+        ),
+
+        // Temporary Playback Queue Drawer
+        queueDrawer: QueueDrawer(
+          controller: _queueController,
+          onClose: () => _shellController.closeQueue(),
+          onPlayItem: (item) {
+            setState(() {
+              _mediaTitle = item.title;
+              _duration = item.duration;
+              _position = Duration.zero;
+              _isPlaying = true;
+            });
+            _playerController.play();
+            _osdController.showPill(
+              action: 'Now Playing: ${item.title}',
+              shortcutKey: 'Queue',
+              icon: VlcIconGlyph.play,
+            );
+          },
+          onSaveAsPlaylist: () {
+            _osdController.showPill(
+              action: 'Saved Queue as Playlist (${_queueController.count} items)',
+              shortcutKey: 'Ctrl+S',
+              icon: VlcIconGlyph.playlist,
+            );
+          },
+          onAddMedia: () {
+            _osdController.showPill(
+              action: 'Add Media to Queue',
+              shortcutKey: 'Ctrl+O',
+              icon: VlcIconGlyph.folder,
+            );
+          },
         ),
 
         // 4-Tab Inspector Drawer preview

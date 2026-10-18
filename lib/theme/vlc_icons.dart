@@ -434,6 +434,27 @@ class _VlcMonochromePainter extends CustomPainter {
         canvas.drawPath(halfFill, paintFill);
         break;
 
+      case VlcIconGlyph.queue:
+        // Stacked list lines with a small play indicator
+        canvas.drawLine(Offset(w * 0.18, h * 0.26), Offset(w * 0.82, h * 0.26), paintStroke);
+        canvas.drawLine(Offset(w * 0.18, h * 0.46), Offset(w * 0.82, h * 0.46), paintStroke);
+        canvas.drawLine(Offset(w * 0.18, h * 0.66), Offset(w * 0.52, h * 0.66), paintStroke);
+        // Play indicator triangle at bottom-right
+        final queuePlay = Path()
+          ..moveTo(w * 0.64, h * 0.56)
+          ..lineTo(w * 0.84, h * 0.68)
+          ..lineTo(w * 0.64, h * 0.80)
+          ..close();
+        canvas.drawPath(queuePlay, paintFill);
+        break;
+
+      case VlcIconGlyph.playlist:
+        // 3 stacked playlist lines
+        canvas.drawLine(Offset(w * 0.18, h * 0.28), Offset(w * 0.82, h * 0.28), paintStroke);
+        canvas.drawLine(Offset(w * 0.18, h * 0.50), Offset(w * 0.82, h * 0.50), paintStroke);
+        canvas.drawLine(Offset(w * 0.18, h * 0.72), Offset(w * 0.82, h * 0.72), paintStroke);
+        break;
+
       default:
         // Fallback generic outline box
         canvas.drawRRect(

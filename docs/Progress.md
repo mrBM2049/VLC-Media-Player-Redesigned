@@ -6,10 +6,10 @@
 
 ## Current Status Summary
 - **Current Active Phase:** `Phase 3 — Quick Popups, Batch Subtitle Auto-Matcher & 4-Tab Inspector Sidebar`
-- **Current Next Task:** `3.3 Build QueueDrawer (temporary drag-and-drop playback queue, separate from saved Playlists)`
+- **Current Next Task:** `3.4 Build InspectorSidebar (Right 340dp drawer on Desktop / Modal Bottom Sheet on Mobile) with Per-Show Preset Bar`
 - **Chosen UI / Native Stack:** `Flutter Impeller + C++ FFI (Option A) with Direct libvlc C ABI`
-- **Latest Handoff Log:** `logs/011-audio-quick-popup-and-hardware-devices.md`
-- **Overall Completion:** `13 / 28 Tasks (46.4%)`
+- **Latest Handoff Log:** `logs/012-queue-drawer-playback-queue.md`
+- **Overall Completion:** `14 / 28 Tasks (50.0%)`
 - **Last Updated:** `2026-10-18`
 
 ---
@@ -48,7 +48,7 @@
 ### Phase 3: Quick Popups, Batch Subtitle Auto-Matcher & 4-Tab Inspector Sidebar
 - [x] **3.1** Build `SubtitleQuickPopup` (`libvlc_video_get_spu_description`) and `AddSubtitlesModal` with **This File / This Folder / This Playlist** scopes, OpenSubtitles REST API search, and batch season episode fuzzy-matcher.
 - [x] **3.2** Build `AudioQuickPopup` combining embedded Audio Tracks (`libvlc_audio_set_track`) and live OS **Hardware Output Device Selector** (`libvlc_audio_output_device_set`).
-- [ ] **3.3** Build `QueueDrawer` (temporary drag-and-drop playback queue, separate from saved Playlists).
+- [x] **3.3** Build `QueueDrawer` (temporary drag-and-drop playback queue, separate from saved Playlists).
 - [ ] **3.4** Build `InspectorSidebar` (Right `340dp` drawer on Desktop / Modal Bottom Sheet on Mobile) with **Per-Show Preset Bar**.
 - [ ] **3.5** Implement **Tab 1 (`SubtitlesInspectorTab`)** + **`InteractiveSubtitleTimeline`** above the seek bar (drag dialogue block while paused to set `libvlc_video_set_spu_delay`) + Relative/Precise font styling.
 - [ ] **3.6** Implement **Tab 2 (`AudioInspectorTab`)** (Audio delay slider, visual Audio Filter Preset cards with previews, expandable 10-band `libvlc_audio_equalizer_t`).
