@@ -77,6 +77,14 @@ class _VlcModernAppState extends State<VlcModernApp> {
   Duration _audioDelay = Duration.zero;
   AudioFilterState _audioFilterState = const AudioFilterState();
   VideoAdjustState _videoAdjustState = const VideoAdjustState();
+  PlaybackStateConfig _playbackConfig = const PlaybackStateConfig();
+
+  final List<ChapterTick> _chapters = const [
+    ChapterTick(fraction: 0.15, title: 'Chapter 1: Prologue', time: Duration(minutes: 20)),
+    ChapterTick(fraction: 0.40, title: 'Chapter 2: Mountain Waves', time: Duration(minutes: 54)),
+    ChapterTick(fraction: 0.70, title: 'Chapter 3: The Black Hole', time: Duration(hours: 1, minutes: 35)),
+    ChapterTick(fraction: 0.90, title: 'Chapter 4: Epilogue', time: Duration(hours: 2, minutes: 02)),
+  ];
 
   final List<VlcAudioTrack> _demoAudioTracks = const [
     VlcAudioTrack(id: 1, name: 'Track 1: English (5.1 DTS-HD MA)', language: 'en', codec: 'DTS 5.1', channels: 6),
@@ -422,13 +430,10 @@ class _VlcModernAppState extends State<VlcModernApp> {
                   position: _position,
                   duration: _duration,
                   bufferProgress: 0.65, // simulated 65% streaming buffer
-                  chapters: const [
-                    ChapterTick(fraction: 0.15, title: 'Chapter 1: Prologue', time: Duration(minutes: 20)),
-                    ChapterTick(fraction: 0.40, title: 'Chapter 2: Mountain Waves', time: Duration(minutes: 54)),
-                    ChapterTick(fraction: 0.70, title: 'Chapter 3: The Black Hole', time: Duration(hours: 1, minutes: 35)),
-                    ChapterTick(fraction: 0.90, title: 'Chapter 4: Epilogue', time: Duration(hours: 2, minutes: 02)),
-                  ],
-                  waveformSamples: List.generate(120, (i) => (math.sin(i * 0.2).abs() * 0.7) + 0.2),
+                  chapters: _playbackConfig.showChapterTicksOverlay ? _chapters : const [],
+                  waveformSamples: _playbackConfig.showWaveformOverlay
+                      ? List.generate(120, (i) => (math.sin(i * 0.2).abs() * 0.7) + 0.2)
+                      : null,
                   onSeek: (targetTime) {
                     setState(() => _position = targetTime);
                     _playerController.setTime(targetTime.inMilliseconds);
@@ -806,6 +811,48 @@ class _VlcModernAppState extends State<VlcModernApp> {
                 action: 'Snapshot: ${path.split(RegExp(r"[\\/]")).last}',
                 shortcutKey: 'Shift+S',
                 icon: VlcIconGlyph.aspectRatio,
+              );
+            },
+          ),
+          playbackTab: PlaybackInspectorTab(
+            config: _playbackConfig,
+            currentPosition: _position,
+            totalDuration: _duration,
+            chapters: _chapters,
+            onConfigChanged: (newConfig) {
+              setState(() {
+                _playbackConfig = newConfig;
+                _playbackRate = newConfig.playbackRate;
+              });
+              _playerController.setRate(newConfig.playbackRate);
+              _osdController.showPill(
+                action: 'Speed: ${newConfig.playbackRate.toStringAsFixed(2)}x',
+                shortcutKey: '>',
+                icon: VlcIconGlyph.speed,
+              );
+            },
+            onSeekTo: (target) {
+              setState(() => _position = target);
+              _playerController.seekTo(target);
+              _osdController.showPill(
+                action: 'Seek: ${target.inMinutes}:${(target.inSeconds % 60).toString().padLeft(2, '0')}',
+                shortcutKey: 'Seek',
+                icon: VlcIconGlyph.play,
+              );
+            },
+            onNextFrame: () {
+              _playerController.nextFrame();
+              _osdController.showPill(
+                action: 'Next Frame',
+                shortcutKey: 'E',
+                icon: VlcIconGlyph.stepForward,
+              );
+            },
+            onPreviousFrame: () {
+              _osdController.showPill(
+                action: 'Previous Frame',
+                shortcutKey: 'Shift+E',
+                icon: VlcIconGlyph.stepBackward,
               );
             },
           ),
