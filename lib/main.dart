@@ -28,6 +28,7 @@ class _VlcModernAppState extends State<VlcModernApp> {
   late final OsdNotificationController _osdController;
   late final QueueController _queueController;
   late final PresetController _presetController;
+  late final MediaLibraryService _mediaLibraryService;
 
   String _mediaTitle = 'Big Buck Bunny (4K Remux)';
   String _folderName = 'Demo Media';
@@ -166,6 +167,9 @@ class _VlcModernAppState extends State<VlcModernApp> {
       },
     );
 
+    // Initialize VideoLAN Medialibrary SQLite Indexer
+    _mediaLibraryService = MediaLibraryService();
+
     // Trigger initial resume prompt preview
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _osdController.showResumePrompt(
@@ -210,6 +214,7 @@ class _VlcModernAppState extends State<VlcModernApp> {
     _osdController.dispose();
     _queueController.dispose();
     _presetController.dispose();
+    _mediaLibraryService.dispose();
     super.dispose();
   }
 
@@ -339,9 +344,13 @@ class _VlcModernAppState extends State<VlcModernApp> {
     final fileName = p.basename(mrl);
     final folderName = p.basename(p.dirname(mrl));
 
+    // Index or retrieve in VideoLAN medialibrary
+    final item = _mediaLibraryService.indexFile(mrl);
+    final resumeMs = _mediaLibraryService.getResumePosition(mrl);
+
     setState(() {
       _fullPath = mrl;
-      _mediaTitle = fileName.isNotEmpty ? fileName : mrl;
+      _mediaTitle = item?.title ?? (fileName.isNotEmpty ? fileName : mrl);
       _folderName = folderName.isNotEmpty ? folderName : 'Media';
       _position = Duration.zero;
       _isPlaying = true;
@@ -349,6 +358,34 @@ class _VlcModernAppState extends State<VlcModernApp> {
 
     _playerController.open(mrl);
     _playerController.play();
+
+    // Check if item has a saved resume position (> 2 seconds)
+    if (resumeMs > 2000) {
+      final resumeDur = Duration(milliseconds: resumeMs);
+      _osdController.showResumePrompt(
+        mediaTitle: _mediaTitle,
+        resumePosition: resumeDur,
+        onResume: () {
+          setState(() => _position = resumeDur);
+          _playerController.setTime(resumeMs);
+          _osdController.showPill(
+            action: 'Resumed at ${item?.formattedResumeTime ?? ''}',
+            shortcutKey: 'Space',
+            icon: VlcIconGlyph.play,
+          );
+        },
+        onStartOver: () {
+          setState(() => _position = Duration.zero);
+          _playerController.setTime(0);
+          _mediaLibraryService.updatePlaybackProgress(mrl, positionMs: 0, durationMs: item?.durationMs ?? 0);
+          _osdController.showPill(
+            action: 'Started Over',
+            shortcutKey: '0',
+            icon: VlcIconGlyph.previous,
+          );
+        },
+      );
+    }
 
     // Add or activate in queue
     final existingIdx = _queueController.items.indexWhere((it) => it.mrl == mrl);
@@ -361,7 +398,7 @@ class _VlcModernAppState extends State<VlcModernApp> {
           mrl: mrl,
           title: _mediaTitle,
           artist: _folderName,
-          duration: const Duration(minutes: 30),
+          duration: Duration(milliseconds: item?.durationMs ?? const Duration(minutes: 30).inMilliseconds),
           isPlaying: true,
         ),
       );
@@ -604,6 +641,11 @@ class _VlcModernAppState extends State<VlcModernApp> {
                   onSeek: (targetTime) {
                     setState(() => _position = targetTime);
                     _playerController.setTime(targetTime.inMilliseconds);
+                    _mediaLibraryService.updatePlaybackProgress(
+                      _fullPath,
+                      positionMs: targetTime.inMilliseconds,
+                      durationMs: _duration.inMilliseconds,
+                    );
                   },
                 ),
 

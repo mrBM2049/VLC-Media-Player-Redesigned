@@ -39,3 +39,7 @@ export 'ui/sidebar/video_inspector_tab.dart';
 export 'ui/sidebar/playback_inspector_tab.dart';
 export 'ui/controls/interactive_subtitle_timeline.dart';
 export 'services/file_picker_service.dart';
+
+// Phase 4 Media Library, Drawer & IPTV
+export 'models/media_library_models.dart';
+export 'services/media_library_service.dart';

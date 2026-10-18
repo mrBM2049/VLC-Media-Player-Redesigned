@@ -5,11 +5,11 @@
 ---
 
 ## Current Status Summary
-- **Current Active Phase:** `Phase 3 — Quick Popups, Batch Subtitle Auto-Matcher & 4-Tab Inspector Sidebar`
-- **Current Next Task:** `3.7 Implement Tab 3 (VideoInspectorTab) (Geometry/Crop/Aspect/Rotate/HDR toggles + Video Filter cards)`
+- **Current Active Phase:** `Phase 4 — medialibrary Integration, Compact Drawer, Music Mode & IPTV Streams`
+- **Current Next Task:** `4.2 Build CompactLibraryDrawer (opens alongside playing video from the top folder breadcrumb so users can drag episodes into Queue without leaving the video)`
 - **Chosen UI / Native Stack:** `Flutter Impeller + C++ FFI (Option A) with Direct libvlc C ABI`
-- **Latest Handoff Log:** `logs/015-audio-inspector-tab-and-equalizer.md`
-- **Overall Completion:** `17 / 28 Tasks (60.7%)`
+- **Latest Handoff Log:** `logs/018-medialibrary-sqlite-indexer.md`
+- **Overall Completion:** `20 / 28 Tasks (71.4%)`
 - **Last Updated:** `2026-10-18`
 
 ---
@@ -23,7 +23,7 @@
 | **Shell, TopBar & OSD Layer** | `lib/ui/shell/` (`app_shell.dart`, `top_player_bar.dart`, `osd_notification_layer.dart`) | Complete (`AppShell`, `TopPlayerBar`, `OSD Layer`) | `logs/009-osd-notification-layer.md` |
 | **Bottom Controls & Thick SeekBar** | `lib/ui/controls/` (`bottom_transport_row.dart`, `volume_control.dart`, `thick_seek_bar.dart`, `interactive_subtitle_timeline.dart`) | Complete (Transport, Overdrive Volume, ThickSeekBar, SubtitleTimeline) | `logs/014-subtitles-inspector-tab-and-interactive-timeline.md` |
 | **Popups & 4-Tab Inspector** | `lib/ui/popups/`, `lib/ui/sidebar/` (`inspector_sidebar.dart`, `subtitle_inspector_tab.dart`, `audio_inspector_tab.dart`, `video_inspector_tab.dart`, `playback_inspector_tab.dart`, `preset_models.dart`, `video_models.dart`, `playback_models.dart`) | Complete (Phase 3 Complete: Tasks 3.1–3.8) | `logs/017-playback-inspector-tab-and-chapters.md` |
-| **Media Library, Music & IPTV** | `lib/ui/library/` (`medialibrary` SQLite, `CompactLibraryDrawer`, `M3UStreamsView`) | Not Started | — |
+| **Media Library, Music & IPTV** | `lib/models/media_library_models.dart`, `lib/services/media_library_service.dart`, `lib/ui/library/` | In Progress (Task 4.1 Complete: SQLite Indexer & Watcher) | `logs/018-medialibrary-sqlite-indexer.md` |
 | **Settings, Hotkeys & Customizer** | `lib/ui/settings/` (`UnifiedSettingsModal`, `HotkeysModal`, `DragDropCustomizer`) | Not Started | — |
 
 ---
@@ -56,7 +56,7 @@
 - [x] **3.8** Implement **Tab 4 (`PlaybackInspectorTab`)** (Speed `0.25x–4.0x`, Reverse playback, Sleep Timer, Seekbar overlay toggles, Visual Bookmarks `Ctrl+B` & Chapters list).
 
 ### Phase 4: `medialibrary` Integration, Compact Drawer, Music Mode & IPTV Streams
-- [ ] **4.1** Integrate VideoLAN `medialibrary` SQLite indexer for folder watching, resume positions, and **Watched First / Unwatched First** sorting.
+- [x] **4.1** Integrate VideoLAN `medialibrary` SQLite indexer for folder watching, resume positions, and **Watched First / Unwatched First** sorting.
 - [ ] **4.2** Build `CompactLibraryDrawer` (opens alongside playing video from the top folder breadcrumb so users can drag episodes into Queue without leaving the video).
 - [ ] **4.3** Build `FullLibraryView` with draggable bottom-right `MiniPlayerOverlay`, breadcrumb address bar, Grid/List/Details view switcher, and Pinned sidebar items.
 - [ ] **4.4** Build `HomeView` (replaces empty cone screen with Continue Watching, Recent Files, Playlists, Streams) and `VideosView`.
