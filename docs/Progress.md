@@ -5,11 +5,11 @@
 ---
 
 ## Current Status Summary
-- **Current Active Phase:** `Phase 4 — medialibrary Integration, Compact Drawer, Music Mode & IPTV Streams`
-- **Current Next Task:** `4.6 Build NetworkStreamsView with GitHub/IPTV .m3u / .m3u8 channel list parser and split classic "Open Media" into dedicated single-purpose modals (Stream, Capture Device, Convert, Cast)`
+- **Current Active Phase:** `All Phases 1–5 COMPLETE (100%)`
+- **Current Next Task:** `Full Project Complete (All 28 Tasks Complete & Verified)`
 - **Chosen UI / Native Stack:** `Flutter Impeller + C++ FFI (Option A) with Direct libvlc C ABI`
-- **Latest Handoff Log:** `logs/022-music-view-and-music-player-canvas.md`
-- **Overall Completion:** `24 / 28 Tasks (85.7%)`
+- **Latest Handoff Log:** `logs/027-touch-gestures-and-final-audit.md`
+- **Overall Completion:** `28 / 28 Tasks (100.0%)`
 - **Last Updated:** `2026-10-18`
 
 ---
@@ -21,10 +21,10 @@
 | **Hardware Video Surfaces** | `native_core/include/hardware_surface.h`, `hardware_surface_metal.mm` (Metal), `hardware_surface_d3d11.cpp`, `hardware_surface_jni.cpp` | Complete (Metal 4K Zero-Copy Verified) | `logs/003-hardware-video-surfaces.md` |
 | **Design Tokens & Theme Engine** | `lib/theme/` (`vlc_colors.dart`, `vlc_geometry.dart`, `vlc_typography.dart`, `vlc_icons.dart`, `vlc_theme.dart`) | Complete (Tokens, Accent Engine, Dual Icons) | `logs/004-theme-tokens-engine.md` |
 | **Shell, TopBar & OSD Layer** | `lib/ui/shell/` (`app_shell.dart`, `top_player_bar.dart`, `osd_notification_layer.dart`) | Complete (`AppShell`, `TopPlayerBar`, `OSD Layer`) | `logs/009-osd-notification-layer.md` |
-| **Bottom Controls & Thick SeekBar** | `lib/ui/controls/` (`bottom_transport_row.dart`, `volume_control.dart`, `thick_seek_bar.dart`, `interactive_subtitle_timeline.dart`) | Complete (Transport, Overdrive Volume, ThickSeekBar, SubtitleTimeline) | `logs/014-subtitles-inspector-tab-and-interactive-timeline.md` |
+| **Bottom Controls & Thick SeekBar** | `lib/ui/controls/` (`bottom_transport_row.dart`, `volume_control.dart`, `thick_seek_bar.dart`, `interactive_subtitle_timeline.dart`, `mobile_gesture_overlay.dart`) | Complete (Transport, Overdrive Volume, ThickSeekBar, SubtitleTimeline, Touch HUD) | `logs/027-touch-gestures-and-final-audit.md` |
 | **Popups & 4-Tab Inspector** | `lib/ui/popups/`, `lib/ui/sidebar/` (`inspector_sidebar.dart`, `subtitle_inspector_tab.dart`, `audio_inspector_tab.dart`, `video_inspector_tab.dart`, `playback_inspector_tab.dart`, `preset_models.dart`, `video_models.dart`, `playback_models.dart`) | Complete (Phase 3 Complete: Tasks 3.1–3.8) | `logs/017-playback-inspector-tab-and-chapters.md` |
-| **Media Library, Music & IPTV** | `lib/models/media_library_models.dart`, `lib/services/media_library_service.dart`, `lib/ui/drawer/compact_library_drawer.dart`, `lib/ui/library/`, `lib/ui/player/` | In Progress (Tasks 4.1–4.5 Complete) | `logs/022-music-view-and-music-player-canvas.md` |
-| **Settings, Hotkeys & Customizer** | `lib/ui/settings/` (`UnifiedSettingsModal`, `HotkeysModal`, `DragDropCustomizer`) | Not Started | — |
+| **Media Library, Music & IPTV** | `lib/models/media_library_models.dart`, `lib/services/media_library_service.dart`, `lib/ui/drawer/compact_library_drawer.dart`, `lib/ui/library/`, `lib/ui/player/` | Complete (Phase 4 Complete: Tasks 4.1–4.6) | `logs/023-network-streams-and-dedicated-modals.md` |
+| **Settings, Hotkeys & Customizer** | `lib/ui/settings/` (`UnifiedSettingsModal`, `HotkeysModal`, `DragDropCustomizer`, `FirstLaunchOnboarding`) | Complete (Phase 5 Complete: Tasks 5.1–5.4) | `logs/027-touch-gestures-and-final-audit.md` |
 
 ---
 
@@ -67,4 +67,4 @@
 - [x] **5.1** Build `UnifiedSettingsModal` across all **12 Categories** with **continuous Basic-to-Advanced scroll** (no Simple/All toggle), human-readable dropdowns, and `ⓘ` tooltips on every setting.
 - [x] **5.2** Build standalone searchable `HotkeysModal` and `FirstLaunchOnboarding` (Theme/Accent picker + shortcut cheat-sheet).
 - [x] **5.3** Build `DragDropLayoutCustomizer` (dashed drop-zone canvas for dragging buttons in/out of bars) with switchable **User Profiles**.
-- [ ] **5.4** Complete iOS & Android touch gestures (vertical swipe volume/brightness with Cone HUD, double-tap `±10s` seek, native OS PiP) and run final `/ponytail-audit` across the repository.
+- [x] **5.4** Complete iOS & Android touch gestures (vertical swipe volume/brightness with Cone HUD, double-tap `±10s` seek, native OS PiP) and run final `/ponytail-audit` across the repository.

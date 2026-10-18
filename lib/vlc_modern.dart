@@ -19,6 +19,7 @@ export 'ui/shell/osd_notification_layer.dart';
 export 'ui/controls/volume_control.dart';
 export 'ui/controls/bottom_transport_row.dart';
 export 'ui/controls/thick_seek_bar.dart';
+export 'ui/controls/mobile_gesture_overlay.dart';
 
 // Phase 3 Models & Popups & Drawer
 export 'models/subtitle_models.dart';
