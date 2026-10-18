@@ -76,6 +76,7 @@ class _VlcModernAppState extends State<VlcModernApp> {
   String _selectedAudioDevice = 'built_in';
   Duration _audioDelay = Duration.zero;
   AudioFilterState _audioFilterState = const AudioFilterState();
+  VideoAdjustState _videoAdjustState = const VideoAdjustState();
 
   final List<VlcAudioTrack> _demoAudioTracks = const [
     VlcAudioTrack(id: 1, name: 'Track 1: English (5.1 DTS-HD MA)', language: 'en', codec: 'DTS 5.1', channels: 6),
@@ -785,6 +786,26 @@ class _VlcModernAppState extends State<VlcModernApp> {
                 action: 'EQ: ${state.activePresetId.replaceAll("_", " ").toUpperCase()}',
                 shortcutKey: 'EQ',
                 icon: VlcIconGlyph.equalizer,
+              );
+            },
+          ),
+          videoTab: VideoInspectorTab(
+            adjustState: _videoAdjustState,
+            onAdjustStateChanged: (newState) {
+              setState(() => _videoAdjustState = newState);
+              _osdController.showPill(
+                action: 'Video: ${newState.aspectRatio.label} • ${newState.rotation.label}',
+                shortcutKey: 'A',
+                icon: VlcIconGlyph.aspectRatio,
+              );
+            },
+            onTakeSnapshot: () {
+              final path = '/tmp/vlc_snapshot_${DateTime.now().millisecondsSinceEpoch}.png';
+              _playerController.takeSnapshot(path);
+              _osdController.showPill(
+                action: 'Snapshot: ${path.split(RegExp(r"[\\/]")).last}',
+                shortcutKey: 'Shift+S',
+                icon: VlcIconGlyph.aspectRatio,
               );
             },
           ),

@@ -38,3 +38,4 @@ Engineered `AudioInspectorTab` (Tab 1 of 4 in `InspectorSidebar`) with track sel
   2. `native_core/include/vlc_bridge.h` & `lib/native/vlc_bridge.dart` — Video crop, aspect ratio, and snapshot extraction APIs.
   3. `lib/models/preset_models.dart` — Show presets that configure video aspect ratios.
 - **Known Edge Cases / Blockers:** None.
+
