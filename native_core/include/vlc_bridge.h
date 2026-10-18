@@ -111,6 +111,12 @@ VLC_BRIDGE_API int vlc_bridge_get_audio_track(void);
 VLC_BRIDGE_API int vlc_bridge_set_audio_track(int track_id);
 VLC_BRIDGE_API void vlc_bridge_enumerate_audio_tracks(vlc_track_enumeration_callback_fn callback, void* user_data);
 
+/* Audio Hardware Output Devices (OS CoreAudio, WASAPI, PulseAudio) */
+typedef void (*vlc_device_enumeration_callback_fn)(const char* id, const char* name, void* user_data);
+VLC_BRIDGE_API void vlc_bridge_enumerate_audio_devices(vlc_device_enumeration_callback_fn callback, void* user_data);
+VLC_BRIDGE_API int vlc_bridge_set_audio_device(const char* device_id);
+VLC_BRIDGE_API const char* vlc_bridge_get_audio_device(void);
+
 VLC_BRIDGE_API int vlc_bridge_get_spu_count(void);
 VLC_BRIDGE_API int vlc_bridge_get_spu_track(void);
 VLC_BRIDGE_API int vlc_bridge_set_spu_track(int spu_id);

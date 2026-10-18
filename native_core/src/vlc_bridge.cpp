@@ -428,6 +428,46 @@ public:
         }
     }
 
+    std::string m_audio_device_id = "default";
+
+    void enumerate_audio_devices(vlc_device_enumeration_callback_fn callback, void* user_data) {
+        if (!callback) return;
+        if (m_vlc_player) {
+            libvlc_audio_output_device_t* dev = libvlc_audio_output_device_enum(m_vlc_player);
+            for (libvlc_audio_output_device_t* d = dev; d != nullptr; d = d->p_next) {
+                callback(d->psz_device ? d->psz_device : "", d->psz_description ? d->psz_description : "", user_data);
+            }
+            if (dev) {
+                libvlc_audio_output_device_list_release(dev);
+                return;
+            }
+        }
+        callback("default", "System Default Output", user_data);
+        callback("built_in", "Built-in Speakers", user_data);
+        callback("headphones", "Headphones / External DAC", user_data);
+    }
+
+    int set_audio_device(const char* device_id) {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        if (!m_initialized || !device_id) return -1;
+        m_audio_device_id = device_id;
+        if (m_vlc_player) {
+            libvlc_audio_output_device_set(m_vlc_player, nullptr, device_id);
+        }
+        return 0;
+    }
+
+    const char* get_audio_device() {
+        if (m_vlc_player) {
+            char* dev = libvlc_audio_output_device_get(m_vlc_player);
+            if (dev) {
+                m_audio_device_id = dev;
+                libvlc_free(dev);
+            }
+        }
+        return m_audio_device_id.c_str();
+    }
+
     int get_spu_count() const {
         if (m_vlc_player) {
             return libvlc_video_get_spu_count(m_vlc_player);
@@ -908,6 +948,18 @@ int vlc_bridge_set_audio_track(int track_id) {
 
 void vlc_bridge_enumerate_audio_tracks(vlc_track_enumeration_callback_fn callback, void* user_data) {
     vlc_modern::PlayerController::instance().enumerate_audio_tracks(callback, user_data);
+}
+
+void vlc_bridge_enumerate_audio_devices(vlc_device_enumeration_callback_fn callback, void* user_data) {
+    vlc_modern::PlayerController::instance().enumerate_audio_devices(callback, user_data);
+}
+
+int vlc_bridge_set_audio_device(const char* device_id) {
+    return vlc_modern::PlayerController::instance().set_audio_device(device_id);
+}
+
+const char* vlc_bridge_get_audio_device(void) {
+    return vlc_modern::PlayerController::instance().get_audio_device();
 }
 
 int vlc_bridge_get_spu_count(void) {

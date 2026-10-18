@@ -1,8 +1,10 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'models/subtitle_models.dart';
+import 'models/audio_models.dart';
 import 'ui/popups/subtitle_quick_popup.dart';
 import 'ui/popups/add_subtitles_modal.dart';
+import 'ui/popups/audio_quick_popup.dart';
 import 'vlc_modern.dart';
 
 void main() {
@@ -44,6 +46,24 @@ class _VlcModernAppState extends State<VlcModernApp> {
     VlcSubtitleTrack(id: 2, name: 'Track 2: Spanish [Latin]', language: 'es'),
     VlcSubtitleTrack(id: 3, name: 'Track 3: French [Parisian]', language: 'fr'),
     VlcSubtitleTrack(id: 4, name: 'Track 4: Japanese [Original]', language: 'ja'),
+  ];
+
+  int _selectedAudioTrack = 1;
+  String _selectedAudioDevice = 'built_in';
+  Duration _audioDelay = Duration.zero;
+
+  final List<VlcAudioTrack> _demoAudioTracks = const [
+    VlcAudioTrack(id: 1, name: 'Track 1: English (5.1 DTS-HD MA)', language: 'en', codec: 'DTS 5.1', channels: 6),
+    VlcAudioTrack(id: 2, name: 'Track 2: English (Director Commentary)', language: 'en', codec: 'AAC Stereo', channels: 2),
+    VlcAudioTrack(id: 3, name: 'Track 3: Spanish (Dubbed 5.1)', language: 'es', codec: 'AC3 5.1', channels: 6),
+    VlcAudioTrack(id: 4, name: 'Track 4: Japanese (Original Stereo)', language: 'ja', codec: 'FLAC 2.0', channels: 2),
+  ];
+
+  final List<VlcAudioOutputDevice> _demoAudioDevices = const [
+    VlcAudioOutputDevice(id: 'default', name: 'System Default Output', type: VlcAudioDeviceType.systemDefault),
+    VlcAudioOutputDevice(id: 'built_in', name: 'MacBook Air Speakers', type: VlcAudioDeviceType.speakers),
+    VlcAudioOutputDevice(id: 'airpods', name: 'AirPods Max (Spatial Audio)', type: VlcAudioDeviceType.bluetooth),
+    VlcAudioOutputDevice(id: 'hdmi', name: 'External 4K Monitor HDMI Audio', type: VlcAudioDeviceType.hdmi),
   ];
 
   @override
@@ -349,11 +369,54 @@ class _VlcModernAppState extends State<VlcModernApp> {
                 );
               },
               onAudioTrackTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('Audio Track Selector (Track 1: 5.1 Surround DTS-HD)'),
-                    duration: const Duration(seconds: 2),
-                    backgroundColor: colors.surfaceVariant,
+                showDialog(
+                  context: context,
+                  barrierColor: Colors.black45,
+                  builder: (dialogCtx) => Center(
+                    child: AudioQuickPopup(
+                      tracks: _demoAudioTracks,
+                      selectedTrackId: _selectedAudioTrack,
+                      devices: _demoAudioDevices,
+                      selectedDeviceId: _selectedAudioDevice,
+                      currentDelay: _audioDelay,
+                      onSelectTrack: (id) {
+                        setState(() => _selectedAudioTrack = id);
+                        _playerController.setAudioTrack(id);
+                        _osdController.showPill(
+                          action: id == -1 ? 'Audio Disabled' : 'Audio Track $id Active',
+                          shortcutKey: 'B',
+                          icon: VlcIconGlyph.audioTrack,
+                        );
+                        Navigator.of(dialogCtx).pop();
+                      },
+                      onSelectDevice: (devId) {
+                        setState(() => _selectedAudioDevice = devId);
+                        _playerController.setAudioDevice(devId);
+                        final dev = _demoAudioDevices.firstWhere(
+                          (d) => d.id == devId,
+                          orElse: () => _demoAudioDevices.first,
+                        );
+                        _osdController.showPill(
+                          action: 'Device: ${dev.name}',
+                          shortcutKey: 'Audio',
+                          icon: VlcIconGlyph.audioTrack,
+                        );
+                      },
+                      onDelayChanged: (d) {
+                        setState(() => _audioDelay = d);
+                        _playerController.setAudioDelay(d);
+                        _osdController.showPill(
+                          action: 'Audio Delay: ${d.inMilliseconds} ms',
+                          shortcutKey: 'J/K',
+                          icon: VlcIconGlyph.audioTrack,
+                        );
+                      },
+                      onOpenEqualizer: () {
+                        Navigator.of(dialogCtx).pop();
+                        _shellController.toggleDrawer(1); // Open Tab 1: EQ
+                      },
+                      onClose: () => Navigator.of(dialogCtx).pop(),
+                    ),
                   ),
                 );
               },

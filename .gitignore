@@ -21,4 +21,14 @@ ios/Runner/GeneratedPluginRegistrant.*
 macos/Flutter/
 linux/flutter/ephemeral/
 windows/flutter/ephemeral/
-
+native_core/build/
+.idea/
+.vscode/
+.metadata
+*.iml
+dummy/
+android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
+linux/flutter/generated_plugin_registrant.*
+linux/flutter/generated_plugins.cmake
+windows/flutter/generated_plugin_registrant.*
+windows/flutter/generated_plugins.cmake

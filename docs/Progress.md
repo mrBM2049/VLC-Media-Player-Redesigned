@@ -6,10 +6,10 @@
 
 ## Current Status Summary
 - **Current Active Phase:** `Phase 3 — Quick Popups, Batch Subtitle Auto-Matcher & 4-Tab Inspector Sidebar`
-- **Current Next Task:** `3.2 Build AudioQuickPopup combining embedded Audio Tracks (libvlc_audio_set_track) and live OS Hardware Output Device Selector (libvlc_audio_output_device_set)`
+- **Current Next Task:** `3.3 Build QueueDrawer (temporary drag-and-drop playback queue, separate from saved Playlists)`
 - **Chosen UI / Native Stack:** `Flutter Impeller + C++ FFI (Option A) with Direct libvlc C ABI`
-- **Latest Handoff Log:** `logs/010-subtitle-quick-popup-and-batch-matcher.md`
-- **Overall Completion:** `12 / 28 Tasks (42.9%)`
+- **Latest Handoff Log:** `logs/011-audio-quick-popup-and-hardware-devices.md`
+- **Overall Completion:** `13 / 28 Tasks (46.4%)`
 - **Last Updated:** `2026-10-18`
 
 ---
@@ -47,24 +47,24 @@
 
 ### Phase 3: Quick Popups, Batch Subtitle Auto-Matcher & 4-Tab Inspector Sidebar
 - [x] **3.1** Build `SubtitleQuickPopup` (`libvlc_video_get_spu_description`) and `AddSubtitlesModal` with **This File / This Folder / This Playlist** scopes, OpenSubtitles REST API search, and batch season episode fuzzy-matcher.
-- [ ] **3.2** Build `AudioQuickPopup` combining embedded Audio Tracks (`libvlc_audio_set_track`) and live OS **Hardware Output Device Selector** (`libvlc_audio_output_device_set`).
-- [ ] **3.3** Build `QueueDrawer` (temporary drag-and-drop playback queue, separate from saved Playlists)[span_29](start_span)[span_29](end_span).
-- [ ] **3.4** Build `InspectorSidebar` (Right `340dp` drawer on Desktop / Modal Bottom Sheet on Mobile) with **Per-Show Preset Bar**[span_30](start_span)[span_30](end_span).
-- [ ] **3.5** Implement **Tab 1 (`SubtitlesInspectorTab`)** + **`InteractiveSubtitleTimeline`** above the seek bar (drag dialogue block while paused to set `libvlc_video_set_spu_delay`) + Relative/Precise font styling[span_31](start_span)[span_31](end_span).
-- [ ] **3.6** Implement **Tab 2 (`AudioInspectorTab`)** (Audio delay slider, visual Audio Filter Preset cards with previews, expandable 10-band `libvlc_audio_equalizer_t`)[span_32](start_span)[span_32](end_span).
-- [ ] **3.7** Implement **Tab 3 (`VideoInspectorTab`)** (Geometry/Crop/Aspect/Rotate/HDR toggles + Video Filter cards with live thumbnail previews)[span_33](start_span)[span_33](end_span).
-- [ ] **3.8** Implement **Tab 4 (`PlaybackInspectorTab`)** (Speed `0.25x–4.0x`, Reverse playback, Sleep Timer, Seekbar overlay toggles, Visual Bookmarks `Ctrl+B` & Chapters list)[span_34](start_span)[span_34](end_span).
+- [x] **3.2** Build `AudioQuickPopup` combining embedded Audio Tracks (`libvlc_audio_set_track`) and live OS **Hardware Output Device Selector** (`libvlc_audio_output_device_set`).
+- [ ] **3.3** Build `QueueDrawer` (temporary drag-and-drop playback queue, separate from saved Playlists).
+- [ ] **3.4** Build `InspectorSidebar` (Right `340dp` drawer on Desktop / Modal Bottom Sheet on Mobile) with **Per-Show Preset Bar**.
+- [ ] **3.5** Implement **Tab 1 (`SubtitlesInspectorTab`)** + **`InteractiveSubtitleTimeline`** above the seek bar (drag dialogue block while paused to set `libvlc_video_set_spu_delay`) + Relative/Precise font styling.
+- [ ] **3.6** Implement **Tab 2 (`AudioInspectorTab`)** (Audio delay slider, visual Audio Filter Preset cards with previews, expandable 10-band `libvlc_audio_equalizer_t`).
+- [ ] **3.7** Implement **Tab 3 (`VideoInspectorTab`)** (Geometry/Crop/Aspect/Rotate/HDR toggles + Video Filter cards with live thumbnail previews).
+- [ ] **3.8** Implement **Tab 4 (`PlaybackInspectorTab`)** (Speed `0.25x–4.0x`, Reverse playback, Sleep Timer, Seekbar overlay toggles, Visual Bookmarks `Ctrl+B` & Chapters list).
 
 ### Phase 4: `medialibrary` Integration, Compact Drawer, Music Mode & IPTV Streams
-- [ ] **4.1** Integrate VideoLAN `medialibrary` SQLite indexer for folder watching, resume positions, and **Watched First / Unwatched First** sorting[span_35](start_span)[span_35](end_span).
-- [ ] **4.2** Build `CompactLibraryDrawer` (opens alongside playing video from the top folder breadcrumb so users can drag episodes into Queue without leaving the video)[span_36](start_span)[span_36](end_span).
-- [ ] **4.3** Build `FullLibraryView` with draggable bottom-right `MiniPlayerOverlay`, breadcrumb address bar, Grid/List/Details view switcher, and Pinned sidebar items[span_37](start_span)[span_37](end_span).
-- [ ] **4.4** Build `HomeView` (replaces empty cone screen with Continue Watching, Recent Files, Playlists, Streams) and `VideosView`[span_38](start_span)[span_38](end_span).
-- [ ] **4.5** Build `MusicView` (*Songs, Albums, Artists, Genres*) and `MusicPlayerCanvas` (large cover art, ambient blur, waveform seek bar)[span_39](start_span)[span_39](end_span).
-- [ ] **4.6** Build `NetworkStreamsView` with GitHub/IPTV `.m3u` / `.m3u8` channel list parser and split classic "Open Media" into dedicated single-purpose modals (*Stream, Capture Device, Convert, Cast*)[span_40](start_span)[span_40](end_span).
+- [ ] **4.1** Integrate VideoLAN `medialibrary` SQLite indexer for folder watching, resume positions, and **Watched First / Unwatched First** sorting.
+- [ ] **4.2** Build `CompactLibraryDrawer` (opens alongside playing video from the top folder breadcrumb so users can drag episodes into Queue without leaving the video).
+- [ ] **4.3** Build `FullLibraryView` with draggable bottom-right `MiniPlayerOverlay`, breadcrumb address bar, Grid/List/Details view switcher, and Pinned sidebar items.
+- [ ] **4.4** Build `HomeView` (replaces empty cone screen with Continue Watching, Recent Files, Playlists, Streams) and `VideosView`.
+- [ ] **4.5** Build `MusicView` (*Songs, Albums, Artists, Genres*) and `MusicPlayerCanvas` (large cover art, ambient blur, waveform seek bar).
+- [ ] **4.6** Build `NetworkStreamsView` with GitHub/IPTV `.m3u` / `.m3u8` channel list parser and split classic "Open Media" into dedicated single-purpose modals (*Stream, Capture Device, Convert, Cast*).
 
 ### Phase 5: Reimagined Settings, Hotkeys, Drag-and-Drop Customizer & Mobile Polish
-- [ ] **5.1** Build `UnifiedSettingsModal` across all **12 Categories** with **continuous Basic-to-Advanced scroll** (no Simple/All toggle), human-readable dropdowns, and `ⓘ` tooltips on every setting[span_41](start_span)[span_41](end_span).
-- [ ] **5.2** Build standalone searchable `HotkeysModal` and `FirstLaunchOnboarding` (Theme/Accent picker + shortcut cheat-sheet)[span_42](start_span)[span_42](end_span).
-- [ ] **5.3** Build `DragDropLayoutCustomizer` (dashed drop-zone canvas for dragging buttons in/out of bars) with switchable **User Profiles**[span_43](start_span)[span_43](end_span).
-- [ ] **5.4** Complete iOS & Android touch gestures (vertical swipe volume/brightness with Cone HUD, double-tap `±10s` seek, native OS PiP) and run final `/ponytail-audit` across the repository[span_44](start_span)[span_44](end_span).
+- [ ] **5.1** Build `UnifiedSettingsModal` across all **12 Categories** with **continuous Basic-to-Advanced scroll** (no Simple/All toggle), human-readable dropdowns, and `ⓘ` tooltips on every setting.
+- [ ] **5.2** Build standalone searchable `HotkeysModal` and `FirstLaunchOnboarding` (Theme/Accent picker + shortcut cheat-sheet).
+- [ ] **5.3** Build `DragDropLayoutCustomizer` (dashed drop-zone canvas for dragging buttons in/out of bars) with switchable **User Profiles**.
+- [ ] **5.4** Complete iOS & Android touch gestures (vertical swipe volume/brightness with Cone HUD, double-tap `±10s` seek, native OS PiP) and run final `/ponytail-audit` across the repository.

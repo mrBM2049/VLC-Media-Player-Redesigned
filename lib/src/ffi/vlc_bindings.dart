@@ -128,6 +128,8 @@ class VlcBridgeBindings {
   late final int Function() vlcBridgeGetAudioTrackCount;
   late final int Function() vlcBridgeGetAudioTrack;
   late final int Function(int) vlcBridgeSetAudioTrack;
+  late final int Function(Pointer<Utf8>) _vlcBridgeSetAudioDevice;
+  late final Pointer<Utf8> Function() _vlcBridgeGetAudioDevice;
   late final int Function() vlcBridgeGetSpuCount;
   late final int Function() vlcBridgeGetSpuTrack;
   late final int Function(int) vlcBridgeSetSpuTrack;
@@ -214,6 +216,8 @@ class VlcBridgeBindings {
     vlcBridgeSetAndroidContext = _lib.lookupFunction<Int32 Function(Pointer<Void>), int Function(Pointer<Void>)>('vlc_bridge_set_android_context');
     vlcBridgeSetupGpuSurface = _lib.lookupFunction<Int32 Function(Int32, Pointer<Void>), int Function(int, Pointer<Void>)>('vlc_bridge_setup_gpu_surface');
     _vlcBridgeGetVideoDimensions = _lib.lookupFunction<Void Function(Pointer<Uint32>, Pointer<Uint32>), void Function(Pointer<Uint32>, Pointer<Uint32>)>('vlc_bridge_get_video_dimensions');
+    _vlcBridgeSetAudioDevice = _lib.lookupFunction<Int32 Function(Pointer<Utf8>), int Function(Pointer<Utf8>)>('vlc_bridge_set_audio_device');
+    _vlcBridgeGetAudioDevice = _lib.lookupFunction<Pointer<Utf8> Function(), Pointer<Utf8> Function()>('vlc_bridge_get_audio_device');
   }
 
   void _initMockBindings() {
@@ -276,6 +280,8 @@ class VlcBridgeBindings {
       w.value = 1920;
       h.value = 1080;
     };
+    _vlcBridgeSetAudioDevice = (_) => 0;
+    _vlcBridgeGetAudioDevice = () => Pointer.fromAddress(0);
   }
 
   int open(String mrl) {
@@ -343,6 +349,20 @@ class VlcBridgeBindings {
       calloc.free(wPtr);
       calloc.free(hPtr);
     }
+  }
+
+  int setAudioDevice(String deviceId) {
+    final nativeStr = deviceId.toNativeUtf8();
+    try {
+      return _vlcBridgeSetAudioDevice(nativeStr);
+    } finally {
+      calloc.free(nativeStr);
+    }
+  }
+
+  String getAudioDevice() {
+    final ptr = _vlcBridgeGetAudioDevice();
+    return ptr == Pointer.fromAddress(0) ? 'default' : ptr.toDartString();
   }
 }
 

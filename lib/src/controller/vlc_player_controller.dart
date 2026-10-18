@@ -99,10 +99,11 @@ class VlcPlayerController {
   Duration get audioDelay => Duration(microseconds: _bindings.vlcBridgeGetAudioDelay());
   int setAudioDelay(Duration delay) => _bindings.vlcBridgeSetAudioDelay(delay.inMicroseconds);
 
-  /* Tracks */
   int get audioTrackCount => _bindings.vlcBridgeGetAudioTrackCount();
   int get audioTrack => _bindings.vlcBridgeGetAudioTrack();
   int setAudioTrack(int trackId) => _bindings.vlcBridgeSetAudioTrack(trackId);
+  String get audioDevice => _bindings.getAudioDevice();
+  int setAudioDevice(String deviceId) => _bindings.setAudioDevice(deviceId);
 
   int get subtitleTrackCount => _bindings.vlcBridgeGetSpuCount();
   int get subtitleTrack => _bindings.vlcBridgeGetSpuTrack();
