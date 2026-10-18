@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'vlc_colors.dart';
 import 'vlc_geometry.dart';
 import 'vlc_typography.dart';
+import 'vlc_icons.dart';
+export 'vlc_colors.dart';
+export 'vlc_geometry.dart';
+export 'vlc_typography.dart';
+export 'vlc_icons.dart';
 
 enum VlcThemeMode {
   dark,
