@@ -304,3 +304,4 @@ class QueueController extends ChangeNotifier {
     notifyListeners();
   }
 }
+

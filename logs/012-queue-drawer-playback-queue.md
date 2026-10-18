@@ -51,3 +51,4 @@
 
 ## 2. Next Priority Task
 - **Task 3.4**: Build `InspectorSidebar` (Right `340dp` drawer on Desktop / Modal Bottom Sheet on Mobile) with **Per-Show Preset Bar**.
+

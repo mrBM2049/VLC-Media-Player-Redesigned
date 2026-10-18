@@ -43,3 +43,4 @@
 
 ## 2. Next Priority Task
 - **Task 3.3**: Build `QueueDrawer` (temporary drag-and-drop playback queue, separate from saved Playlists).
+

@@ -6,10 +6,10 @@
 
 ## Current Status Summary
 - **Current Active Phase:** `Phase 3 — Quick Popups, Batch Subtitle Auto-Matcher & 4-Tab Inspector Sidebar`
-- **Current Next Task:** `3.4 Build InspectorSidebar (Right 340dp drawer on Desktop / Modal Bottom Sheet on Mobile) with Per-Show Preset Bar`
+- **Current Next Task:** `3.5 Implement Tab 1 (SubtitlesInspectorTab) + InteractiveSubtitleTimeline`
 - **Chosen UI / Native Stack:** `Flutter Impeller + C++ FFI (Option A) with Direct libvlc C ABI`
-- **Latest Handoff Log:** `logs/012-queue-drawer-playback-queue.md`
-- **Overall Completion:** `14 / 28 Tasks (50.0%)`
+- **Latest Handoff Log:** `logs/013-inspector-sidebar-and-preset-bar.md`
+- **Overall Completion:** `15 / 28 Tasks (53.6%)`
 - **Last Updated:** `2026-10-18`
 
 ---
@@ -22,7 +22,7 @@
 | **Design Tokens & Theme Engine** | `lib/theme/` (`vlc_colors.dart`, `vlc_geometry.dart`, `vlc_typography.dart`, `vlc_icons.dart`, `vlc_theme.dart`) | Complete (Tokens, Accent Engine, Dual Icons) | `logs/004-theme-tokens-engine.md` |
 | **Shell, TopBar & OSD Layer** | `lib/ui/shell/` (`app_shell.dart`, `top_player_bar.dart`, `osd_notification_layer.dart`) | Complete (`AppShell`, `TopPlayerBar`, `OSD Layer`) | `logs/009-osd-notification-layer.md` |
 | **Bottom Controls & Thick SeekBar** | `lib/ui/controls/` (`bottom_transport_row.dart`, `volume_control.dart`, `thick_seek_bar.dart`) | Complete (Transport, Overdrive Volume, ThickSeekBar) | `logs/008-thick-seek-bar.md` |
-| **Popups & 4-Tab Inspector** | `lib/ui/popups/` (`subtitle_quick_popup.dart`, `add_subtitles_modal.dart`), `lib/ui/sidebar/` | In Progress (Task 3.1 Complete) | `logs/010-subtitle-quick-popup-and-batch-matcher.md` |
+| **Popups & 4-Tab Inspector** | `lib/ui/popups/`, `lib/ui/sidebar/` (`inspector_sidebar.dart`, `preset_models.dart`) | In Progress (Tasks 3.1–3.4 Complete) | `logs/013-inspector-sidebar-and-preset-bar.md` |
 | **Media Library, Music & IPTV** | `lib/ui/library/` (`medialibrary` SQLite, `CompactLibraryDrawer`, `M3UStreamsView`) | Not Started | — |
 | **Settings, Hotkeys & Customizer** | `lib/ui/settings/` (`UnifiedSettingsModal`, `HotkeysModal`, `DragDropCustomizer`) | Not Started | — |
 
@@ -49,7 +49,7 @@
 - [x] **3.1** Build `SubtitleQuickPopup` (`libvlc_video_get_spu_description`) and `AddSubtitlesModal` with **This File / This Folder / This Playlist** scopes, OpenSubtitles REST API search, and batch season episode fuzzy-matcher.
 - [x] **3.2** Build `AudioQuickPopup` combining embedded Audio Tracks (`libvlc_audio_set_track`) and live OS **Hardware Output Device Selector** (`libvlc_audio_output_device_set`).
 - [x] **3.3** Build `QueueDrawer` (temporary drag-and-drop playback queue, separate from saved Playlists).
-- [ ] **3.4** Build `InspectorSidebar` (Right `340dp` drawer on Desktop / Modal Bottom Sheet on Mobile) with **Per-Show Preset Bar**.
+- [x] **3.4** Build `InspectorSidebar` (Right `340dp` drawer on Desktop / Modal Bottom Sheet on Mobile) with **Per-Show Preset Bar**.
 - [ ] **3.5** Implement **Tab 1 (`SubtitlesInspectorTab`)** + **`InteractiveSubtitleTimeline`** above the seek bar (drag dialogue block while paused to set `libvlc_video_set_spu_delay`) + Relative/Precise font styling.
 - [ ] **3.6** Implement **Tab 2 (`AudioInspectorTab`)** (Audio delay slider, visual Audio Filter Preset cards with previews, expandable 10-band `libvlc_audio_equalizer_t`).
 - [ ] **3.7** Implement **Tab 3 (`VideoInspectorTab`)** (Geometry/Crop/Aspect/Rotate/HDR toggles + Video Filter cards with live thumbnail previews).

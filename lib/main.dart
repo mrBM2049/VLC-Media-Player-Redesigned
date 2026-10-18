@@ -27,6 +27,7 @@ class _VlcModernAppState extends State<VlcModernApp> {
   late final AppShellController _shellController;
   late final OsdNotificationController _osdController;
   late final QueueController _queueController;
+  late final PresetController _presetController;
 
   String _mediaTitle = 'Big Buck Bunny (4K Remux)';
   String _folderName = 'Demo Media';
@@ -123,6 +124,17 @@ class _VlcModernAppState extends State<VlcModernApp> {
       initialIndex: 0,
     );
 
+    // Initialize Per-Show Preset Controller
+    _presetController = PresetController(
+      onPresetChanged: (preset) {
+        _osdController.showPill(
+          action: 'Profile: ${preset.name}',
+          shortcutKey: 'P',
+          icon: VlcIconGlyph.equalizer,
+        );
+      },
+    );
+
     // Trigger initial resume prompt preview
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _osdController.showResumePrompt(
@@ -159,6 +171,7 @@ class _VlcModernAppState extends State<VlcModernApp> {
     _shellController.dispose();
     _osdController.dispose();
     _queueController.dispose();
+    _presetController.dispose();
     super.dispose();
   }
 
@@ -608,38 +621,27 @@ class _VlcModernAppState extends State<VlcModernApp> {
           },
         ),
 
-        // 4-Tab Inspector Drawer preview
-        rightDrawer: Container(
-              color: colors.surface,
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Inspector & Presets',
-                        style: currentVlcTheme.typography.titleMedium,
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.close, size: 18),
-                        onPressed: () => _shellController.closeDrawer(),
-                      ),
-                    ],
-                  ),
-                  const Divider(),
-                  const SizedBox(height: 12),
-                  Text('Tab 1: Subtitles (Synced)', style: currentVlcTheme.typography.bodyMedium),
-                  const SizedBox(height: 8),
-                  Text('Tab 2: Audio & 10-Band EQ', style: currentVlcTheme.typography.bodyMedium),
-                  const SizedBox(height: 8),
-                  Text('Tab 3: Video Shaders & Aspect', style: currentVlcTheme.typography.bodyMedium),
-                  const SizedBox(height: 8),
-                  Text('Tab 4: Playback & Chapters', style: currentVlcTheme.typography.bodyMedium),
-                ],
-              ),
-            ),
+        // 4-Tab Inspector Drawer & Preset Bar
+        rightDrawer: InspectorSidebar(
+          activeTab: _shellController.activeDrawerTab,
+          onTabChanged: (idx) => _shellController.openDrawer(idx),
+          onClose: () => _shellController.closeDrawer(),
+          presetController: _presetController,
+          onResetPreset: () {
+            _osdController.showPill(
+              action: 'Reset to Standard Profile',
+              shortcutKey: 'Preset',
+              icon: VlcIconGlyph.equalizer,
+            );
+          },
+          onApplyToFolder: (apply) {
+            _osdController.showPill(
+              action: apply ? 'Preset linked to folder' : 'Preset set for file only',
+              shortcutKey: 'Scope',
+              icon: VlcIconGlyph.playlist,
+            );
+          },
+        ),
           );
         },
       ),
